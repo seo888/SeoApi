@@ -45,7 +45,7 @@ class Register():
         os.makedirs(path_dir, exist_ok=True)
         register_path = os.path.join(path_dir, "register.txt")
         register_log = self.func.get_text(register_path)
-        if f'‖{domain}‖' not in register_log:
+        if f'‖{domain}‖' not in register_log and not any(domain.endswith(i) for i in ['.edu.cn','.gov.cn']):
             now_time = arrow.now("Asia/Shanghai").format('YYYY-MM-DD HH:mm:ss')
             if self.can_register(domain):
                 print(mes:=f'{now_time}【{web}】‖{domain}‖✅‖{keyword}‖{index}‖{url}‖{title}‖{des}')
@@ -59,7 +59,7 @@ class Register():
                     resp = httpx.get(url,params=params)
                     print(resp.text)
             else:
-                print(mes:=f'{now_time}【{web}】‖{domain}‖❌‖{keyword}‖{index}‖{url}‖{title}‖{des}')
+                print(mes:=f'{now_time}【{web}】‖{domain}‖❌‖{keyword}‖{index}‖{url}‖{title}')
             with open(register_path,'a',encoding='utf-8')as log_f:
                 log_f.write(mes+'\n')
         else:
