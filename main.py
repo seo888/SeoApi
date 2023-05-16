@@ -5,6 +5,7 @@ from fastapi import Response, Request, Form, Body
 from fastapi import FastAPI
 import uvicorn
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
+from func.api.tg import Telegram
 from func.function import Func
 from func import middle
 from func.router import Router
@@ -53,6 +54,17 @@ router = Router()
 async def middleware(request: Request, call_next):
     """中间件 访问前后"""
     return await middle.middleware(request, call_next, func)
+
+@app.get("/telegram/send", tags=["telegram"],
+         name="【telegram】Send Message",
+         description="给指定telegram频道或用户发送消息")
+async def telegram_send(request: Request, text=None, token=None, to_id=None):
+    """给指定telegram频道或用户发送消息"""
+    if text is None:
+        return Response(content='【telegram】Send Message API', media_type="text/html;charset=utf-8")
+    if text is not None and token is not None and id is not None:
+        return await router.tg_send(text,token,to_id)
+    return JSONResponse({"error": "参数不全"})
 
 @app.get("/s")
 async def baidu_(wd: str = None,rn:int = 50):

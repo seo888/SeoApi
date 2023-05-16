@@ -41,6 +41,7 @@ class Register():
 
     def find_domain(self, domain, web, keyword, index, url,title, des):
         """扫域名"""
+        config = self.func.get_yaml('config/config.yml')
         path_dir = os.path.join("cache", arrow.now("Asia/Shanghai").format('YYYY-MM-DD'))
         os.makedirs(path_dir, exist_ok=True)
         register_path = os.path.join(path_dir, "register.txt")
@@ -53,12 +54,22 @@ class Register():
                 print(mes:=f'{now_time}||[{web}]{domain}||不可注册||{keyword}||{index}||{url}||{title}||{des}')
             with open(register_path,'a',encoding='utf-8')as log_f:
                 log_f.write(mes+'\n')
+            if config['【功能开关】']['开启发送至telegram']:
+                url = f"http://{config['【网站信息】']['绑定域名']}/telegram/send"
+                params = {
+                    "text": mes,
+                    "token": config['【功能开关】']['telegram_token'],
+                    "to_id": config['【功能开关】']['telegram_group_chat_id'],
+                }
+                resp = httpx.get(url,params=params)
+                print(resp.text)
         else:
             print(f'[{web}]{domain}||已经存在，跳过查询')
 
     def domain_can_register(self,web,result):
         """查询域名data结果是否有可以注册的域名"""
-        if result['success'] and len(datas:=result['data'])>0:
+        config = self.func.get_yaml('config/config.yml')
+        if config['【功能开关】']['开启域名可注册查询'] and result['success'] and len(datas:=result['data'])>0:
             query_dict = {}
             for i in datas:
                 domain = i['domain']
