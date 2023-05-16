@@ -31,3 +31,8 @@ class BingAction(str, Enum):
 class Mir6Action(str, Enum):
     """mir6接口数据限制"""
     WEIGHT = "weight"
+
+class DomainsAction(str, Enum):
+    """domains数据限制"""
+    LOG = "log"
+    REGISTER = "register"

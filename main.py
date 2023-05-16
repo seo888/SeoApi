@@ -66,6 +66,11 @@ async def telegram_send(request: Request, text=None, token=None, to_id=None):
         return await router.tg_send(text,token,to_id)
     return JSONResponse({"error": "参数不全"})
 
+@app.get("/domains/{mode}")
+async def domains(mode: DomainsAction, day=None):
+    """扫描的可注册域名"""
+    return await router.show_domains(mode,day)
+
 @app.get("/s")
 async def baidu_(wd: str = None,rn:int = 50):
     """百度接口 搜索输入跳转"""
