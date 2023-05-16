@@ -5,19 +5,22 @@ import os
 from fastapi import Response, Request, Form, Body
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 from func.api.baidu import Baidu
+from func.api.domain import Register
 from func.api.google import Google
 from func.api.bing import Bing
 from func.const import *
 from func.function import Func
 from func.api.mir6 import Mir6
 
+
 class Router():
     """路由解析器"""
 
     def __init__(self):
         self.func = Func()
-        if not os.path.exists('cookie_cache'):
-            os.mkdir('cookie_cache')
+        self.register = Register(self.func)
+        if not os.path.exists('cache'):
+            os.mkdir('cache')
 
     async def baidu(self, action, q,num=50):
         """百度接口"""
@@ -27,6 +30,8 @@ class Router():
             return Response(content=result, media_type='text/html;charset=utf-8')
         elif action == BaiduAction.DATA:
             result = await baidu.get_data(q,num)
+            # 查询域名是否可注册
+            self.register.domain_can_register('baidu',result)
         elif action == BaiduAction.INCLUDED:
             result = await baidu.get_included(q,num)
         elif action == BaiduAction.INCLUDE:
@@ -43,6 +48,8 @@ class Router():
             return Response(content=result, media_type='text/html;charset=utf-8')
         elif action == GoogleAction.DATA:
             result = await google.get_data(q,num)
+            # 查询域名是否可注册
+            self.register.domain_can_register('google',result)
         elif action == GoogleAction.INCLUDE:
             result = await google.get_include(q,num)
         elif action == GoogleAction.PULLDOWN:
@@ -50,7 +57,7 @@ class Router():
         return JSONResponse(result)
     
     async def bing(self, action, q,num=50):
-        """谷歌接口"""
+        """必应接口"""
         bing = Bing(self.func)
         if action == BingAction.SOURCE:
             result = await bing.get_source(q,num)
@@ -60,6 +67,8 @@ class Router():
                 return JSONResponse(result)
         elif action == BingAction.DATA:
             result = await bing.get_data(q,num)
+            # 查询域名是否可注册
+            self.register.domain_can_register('bing',result)
         elif action == BingAction.INCLUDE:
             result = await bing.get_include(q,num)
         elif action == BingAction.PULLDOWN:

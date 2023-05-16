@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 
-from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 from fastapi import Response, Request, Form, Body
 from fastapi import FastAPI

@@ -21,7 +21,7 @@ class Baidu():
     def __init__(self, func):
         self.func = func
         self.config= self.func.get_yaml('config/config.yml')
-        os.makedirs("cookie_cache", exist_ok=True)
+        os.makedirs("cache", exist_ok=True)
 
     async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1'):
         """异步访问"""
@@ -52,7 +52,7 @@ class Baidu():
                   "rn": num,
                   "ie": "UTF-8"}
         use_ip = await self.func.use_ip('baidu')
-        ip_path_dir = os.path.join("cookie_cache", arrow.now(
+        ip_path_dir = os.path.join("cache", arrow.now(
             "Asia/Shanghai").format('YYYY-MM-DD'))
         os.makedirs(ip_path_dir, exist_ok=True)
         ip_path = os.path.join(ip_path_dir, use_ip)+".json"

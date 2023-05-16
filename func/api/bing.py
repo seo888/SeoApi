@@ -70,7 +70,7 @@ class Bing():
             title = li.xpath('.//h2')[0].xpath('string(.)').strip()
             real_url = li.xpath('.//h2/a/@href')[0]
             full_domain, root_domain = self.func.get_domain_info(real_url)[1:]
-            des = li.xpath('.//p')[0].xpath('string(.)').strip()
+            des = des_p[0].xpath('string(.)').strip() if len(des_p:=li.xpath('.//p'))>0 else ''
             des = des[2:] if des.startswith('网页') else des
             print(index+1, title, real_url,des)
             datas.append({"id": index + 1, "title": title, "full_domain": full_domain, "domain": root_domain, "link": real_url,'des': des})

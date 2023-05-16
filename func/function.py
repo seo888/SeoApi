@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 """功能函数"""
 
+
 import linecache
 import os
 import json
@@ -18,6 +19,7 @@ class Func():
 
     def __init__(self):
         self.ips = self.get_ips()
+        
 
     def get_ips(self):
         """获取当前服务器所有IP"""
@@ -40,7 +42,7 @@ class Func():
 
     async def use_ip(self,name):
         """获取IP"""
-        path_dir = os.path.join("cookie_cache", arrow.now(
+        path_dir = os.path.join("cache", arrow.now(
             "Asia/Shanghai").format('YYYY-MM-DD'))
         os.makedirs(path_dir, exist_ok=True)
         use_ips_path = os.path.join(path_dir, f"{name}_ips")+".txt"
@@ -95,3 +97,11 @@ class Func():
         linecache.checkcache(path)
         result = [i.strip() for i in linecache.getlines(path) if len(i.strip())>0]
         return result
+    
+    def get_text(self, path):
+        """文本文件解析"""
+        linecache.checkcache(path)
+        text = "".join(linecache.getlines(path))
+        return text
+    
+
