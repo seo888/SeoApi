@@ -4,11 +4,12 @@
 import os
 from fastapi import Response, Request, Form, Body
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
-from func.baidu import Baidu
-from func.google import Google
+from func.api.baidu import Baidu
+from func.api.google import Google
+from func.api.bing import Bing
 from func.const import *
 from func.function import Func
-from func.mir6 import Mir6
+from func.api.mir6 import Mir6
 
 class Router():
     """路由解析器"""
@@ -48,6 +49,23 @@ class Router():
             result = await google.get_pulldown(q)
         return JSONResponse(result)
     
+    async def bing(self, action, q,num=50):
+        """谷歌接口"""
+        bing = Bing(self.func)
+        if action == BingAction.SOURCE:
+            result = await bing.get_source(q,num)
+            if result['success']:
+                return Response(content=result['result'], media_type='text/html;charset=utf-8')
+            else:
+                return JSONResponse(result)
+        elif action == BingAction.DATA:
+            result = await bing.get_data(q,num)
+        elif action == BingAction.INCLUDE:
+            result = await bing.get_include(q,num)
+        elif action == BingAction.PULLDOWN:
+            result = await bing.get_pulldown(q)
+        return JSONResponse(result)
+
     async def mir6(self, action, q):
         """谷歌接口"""
         mir6 = Mir6(self.func)

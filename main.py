@@ -26,6 +26,10 @@ app = FastAPI(
             "description": "谷歌相关api",
         },
         {
+            "name": "必应",
+            "description": "必应相关api",
+        },
+        {
             "name": "米人",
             "description": "米人相关api",
         },
@@ -67,11 +71,14 @@ async def baidu(action: BaiduAction, q: str = None,num:int = 50):
     return await router.baidu(action, q,num=num)
 
 @app.get("/search")
-async def google_(q: str = None,num: int = 50):
+async def google_(request: Request,q: str = None,num: int = 50):
     """谷歌接口 搜索输入跳转"""
     if q is None:
         return JSONResponse(status_code=404, content={"error": '参数错误'})
-    search_url = f"/google/source?q={q}&num={num}"
+    if "/bing/" in request.headers['referer']:
+        search_url = f"/bing/source?q={q}&num={num}"
+    else:
+        search_url = f"/google/source?q={q}&num={num}"
     return RedirectResponse(url=search_url,status_code=301)
 
 
@@ -88,6 +95,13 @@ async def url(q: str=''):
     if q[:len("http")] == "http":
         return RedirectResponse(url=q,status_code=301)
     return {'q':q}
+
+@app.get("/bing/{action}", tags=["必应"])
+async def bing(action: BingAction, q: str = None,num: int = 50):
+    """必应接口"""
+    if q is None:
+        return JSONResponse(status_code=404, content={"error": '参数错误'})
+    return await router.bing(action, q,num=num)
 
 @app.get("/mir6/{action}", tags=["米人"])
 async def mir6(action: Mir6Action, q: str = None):

@@ -58,30 +58,6 @@ class Google():
         except Exception as err:
             print(err)
             return {'keyword': querry, 'info': str(err)}
-
-    # async def get_data(self, q,num):
-    #     """获取搜索结果data数据"""
-    #     resp_text = await self.search(q,num)
-    #     tree = etree.HTML(resp_text)
-    #     divs = tree.xpath('//div[@class="egMi0 kCrYT"]')
-    #     datas = []
-    #     for index, div in enumerate(divs):
-    #         try:
-    #             title = div.xpath('.//h3')[0].xpath('string(.)').strip()
-    #             real_url = div.xpath('./a/@href')[0].replace('/url?q=', '')
-    #             real_url = real_url.split('&sa=U&')[0]
-    #             real_url = unquote(unquote(real_url))
-    #             full_domain, root_domain = self.func.get_domain_info(real_url)[1:]
-    #             des = div.xpath('../div[2]/div/div/div/div/div/text()')[0]
-    #             datas.append({"id": index + 1, "title": title,
-    #                          "full_domain": full_domain, "domain": root_domain, "link": real_url,'des': des})
-    #         except Exception as err:
-    #             print(index, err)
-    #     # 相关搜索 关键词
-    #     related = tree.xpath('//div[@class="kjGX2"]/span/div/text()')
-    #     # 其他人搜
-    #     more = tree.xpath('//div[@class="Lt3Tzc"]/text()')
-    #     return {"keyword": q, "related": related, "more":more,"data": datas,'success': True}
     
     async def get_data(self, querry,num):
         """获取搜索结果data数据"""

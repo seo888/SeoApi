@@ -39,7 +39,7 @@ class Func():
             return []
 
     async def use_ip(self,name):
-        """谷歌获取IP"""
+        """获取IP"""
         path_dir = os.path.join("cookie_cache", arrow.now(
             "Asia/Shanghai").format('YYYY-MM-DD'))
         os.makedirs(path_dir, exist_ok=True)

@@ -14,7 +14,14 @@ class BaiduAction(str, Enum):
 
 
 class GoogleAction(str, Enum):
-    """百度接口数据限制"""
+    """谷歌接口数据限制"""
+    SOURCE = "source"
+    DATA = "data"
+    INCLUDE = "include"
+    PULLDOWN = "pulldown"
+
+class BingAction(str, Enum):
+    """必应接口数据限制"""
     SOURCE = "source"
     DATA = "data"
     INCLUDE = "include"
@@ -22,5 +29,5 @@ class GoogleAction(str, Enum):
 
 
 class Mir6Action(str, Enum):
-    """百度接口数据限制"""
+    """mir6接口数据限制"""
     WEIGHT = "weight"
