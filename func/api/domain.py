@@ -72,9 +72,14 @@ class Register():
                             webs = {
                                 'bing':f'[【bing】](https://www.bing.com/search?q=site:{domain})',
                                 'google':f'[【google】](https://www.google.com/search?q=site:{domain})',
-                                'baidu':f'[【baidu】](https://www.bing.com/s?wd=site:{domain})',
+                                'baidu':f'[【baidu】](https://www.baidu.com/s?wd=site:{domain})',
                             }
-                            tele_mes = mes.replace(f'【{web}】',webs[web])
+                            keyword_dict = {
+                                'bing':f'[{keyword}](https://www.bing.com/search?q={keyword})',
+                                'google':f'[{keyword}](https://www.google.com/search?q={keyword})',
+                                'baidu':f'[{keyword}](https://www.baidu.com/s?wd={keyword})',
+                            }
+                            tele_mes = mes.replace(f'【{web}】',webs[web]).replace(f'‖{keyword}‖',f'‖{keyword_dict[web]}‖')
                             url = f"http://{config['【网站信息】']['绑定域名']}/telegram/send"
                             params = {
                                 "text": tele_mes,
