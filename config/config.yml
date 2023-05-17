@@ -1,13 +1,13 @@
 【网站信息】:
   程序名称: api1
-  绑定域名: tools.ezseo.cn
+  绑定域名: yourdomain.com
 
 【功能开关】:
   开启域名可注册查询: true
   开启发送至telegram: true
   排名大于限制发送: 5
-  telegram_token: '5140222274:AAGadFsnBxxT4CoIfrMAtU5mYLylsxKuTjk' # 机器人TOKEN
-  telegram_group_chat_id: '-321014615' # 群组ID
+  telegram_token: '' # 机器人TOKEN
+  telegram_group_chat_id: '' # 群组ID
 
 【访问策略】:
   UA黑名单: "BLEXBot|Scrapy|Curl|HttpClient|UniversalFeedParser|lightDeckReports Bot|heritrix|Java|Bytespider|YandexBot|FlightDeckReports|Indy Library|BOT/0.1|DigExt|Feedly|Swiftbot|oBot|Python-urllib|CrawlDaddy|YYSpider|JikeSpider|ZmEu|MJ12bot|WebZIP|Apache-HttpAsyncClient|HttpClient|WinHttp|jaunty|Alexa Toolbar|LinkpadBot|Microsoft URL Control|node-superagent|Ezooms|Jullo|SemrushBot|FetchURL|AhrefsBot|EasouSpider|java/|CoolpadWebkit|Linguee Bot|ApacheBench|AskTbFXTV|FeedDemon"
