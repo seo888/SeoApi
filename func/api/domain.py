@@ -68,20 +68,21 @@ class Register():
                 if self.can_register(domain):
                     print(mes:=f'{now_time}【{web}】‖{domain}‖✅‖{keyword}‖{index}‖{url}‖{title}‖{des}')
                     if config['【功能开关】']['开启发送至telegram']:
-                        webs = {
-                            'bing':f'[【bing】](https://www.bing.com/search?q=site:{domain})',
-                            'google':f'[【google】](https://www.google.com/search?q=site:{domain})',
-                            'baidu':f'[【baidu】](https://www.bing.com/s?wd=site:{domain})',
-                        }
-                        tele_mes = mes.replace(f'【{web}】',webs[web])
-                        url = f"http://{config['【网站信息】']['绑定域名']}/telegram/send"
-                        params = {
-                            "text": tele_mes,
-                            "token": config['【功能开关】']['telegram_token'],
-                            "to_id": config['【功能开关】']['telegram_group_chat_id'],
-                        }
-                        resp = httpx.get(url,params=params)
-                        print(resp.text)
+                        if int(index) <= int(config['【功能开关】']['排名大于限制发送']):
+                            webs = {
+                                'bing':f'[【bing】](https://www.bing.com/search?q=site:{domain})',
+                                'google':f'[【google】](https://www.google.com/search?q=site:{domain})',
+                                'baidu':f'[【baidu】](https://www.bing.com/s?wd=site:{domain})',
+                            }
+                            tele_mes = mes.replace(f'【{web}】',webs[web])
+                            url = f"http://{config['【网站信息】']['绑定域名']}/telegram/send"
+                            params = {
+                                "text": tele_mes,
+                                "token": config['【功能开关】']['telegram_token'],
+                                "to_id": config['【功能开关】']['telegram_group_chat_id'],
+                            }
+                            resp = httpx.get(url,params=params)
+                            print(resp.text)
                 else:
                     print(mes:=f'{now_time}【{web}】‖{domain}‖❌‖{keyword}‖{index}‖{url}‖{title}')
                 with open(register_path,'a',encoding='utf-8')as log_f:

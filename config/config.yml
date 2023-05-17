@@ -5,6 +5,7 @@
 【功能开关】:
   开启域名可注册查询: true
   开启发送至telegram: true
+  排名大于限制发送: 5
   telegram_token: '5140222274:AAGadFsnBxxT4CoIfrMAtU5mYLylsxKuTjk' # 机器人TOKEN
   telegram_group_chat_id: '-321014615' # 群组ID
 
