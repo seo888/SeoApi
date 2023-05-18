@@ -31,7 +31,7 @@ def update_file(src,dest,ignore):
             for name in files:
                 src_file = os.path.join(root, name)
                 if src_file in ignore_list:
-                    print(root,'过滤文件')
+                    print(src_file,'过滤文件')
                     continue
                 dest_file = os.path.join(root.replace(src,dest),name)
                 os.makedirs(os.path.dirname(dest_file),exist_ok=True)
