@@ -119,7 +119,7 @@ class Router():
                 log_list = self.func.get_lines(register_path)
                 register_list =[]
                 for i in log_list:
-                    if "✅" in i:
+                    if "‖✅‖" in i:
                         register_list.append(i)
                 result = '\n'.join(register_list)
                 return Response(content=result, media_type='text/plain;charset=utf-8')

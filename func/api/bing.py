@@ -36,11 +36,15 @@ class Bing():
             "from": 'QBRE',
             "sp": '-1',
             "lq": '0',
-            "pq": 'python',
-            "setlang": "zh-Hans", }
+            "pq": text,
+            "setlang": "zh-Hans", 
+            "first": "1", 
+            "FORM": "PORE", 
+            }
         use_ip = await self.func.use_ip('bing')
         # user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
         user_agent = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/103.0.5060.134 Safari/537.36"
+        user_agent = UserAgent().random
         headers = {
             "user-agent": user_agent,
             "referer": "https://www.bing.com/",
