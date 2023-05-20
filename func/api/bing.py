@@ -30,16 +30,22 @@ class Bing():
         """搜索查询"""
         text = unquote(querry)
         url = 'https://www.bing.com/search'
+        """&sk=&cvid=0054FD091D974C3085B871C05A447372&ghsh=0&ghacc=0&ghpl="""
         params = {
             "q": text,
             "qs": "n",
-            "from": 'QBRE',
+            "from": 'QBLH',
             "sp": '-1',
             "lq": '0',
-            "pq": text,
-            "setlang": "zh-Hans", 
+            "pq": "fges",
+            "sc": "10-4",
+            "sk": "",
+            "ghpl": "",
+            "ghsh": "0",
+            "ghacc": "0",
+            # "setlang": "zh-Hans", 
             # "first": "1", 
-            "FORM": "PORE", 
+            # "FORM": "PORE", 
             }
         use_ip = await self.func.use_ip('bing')
         muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
