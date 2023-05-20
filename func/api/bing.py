@@ -37,8 +37,8 @@ class Bing():
             "sp": '-1',
             "lq": '0',
             "pq": text,
-            "setlang": "zh-Hans", 
-            "first": "1", 
+            # "setlang": "zh-Hans", 
+            # "first": "1", 
             "FORM": "PORE", 
             }
         use_ip = await self.func.use_ip('bing')
