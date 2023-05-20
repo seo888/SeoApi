@@ -20,6 +20,7 @@ class Bing():
     async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1'):
         """异步访问"""
         transport = httpx.AsyncHTTPTransport(local_address=use_ip)
+        print(url,use_ip)
         async with httpx.AsyncClient(
                 headers=headers, params=params, http2=True, transport=transport) as client:
             resp = await client.get(url)
