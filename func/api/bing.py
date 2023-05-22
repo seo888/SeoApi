@@ -36,7 +36,7 @@ class Bing():
             "q": text,
             "qs": "n",
             "pq": "fges",
-            "mkt": "zh-CN", 
+            # "mkt": "zh-CN", 
         }
         # for k,v in {"qs": "n",
         #     # "from": 'QBLH',
