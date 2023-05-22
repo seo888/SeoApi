@@ -59,7 +59,7 @@ class Bing():
         else:
             resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip)
         print(resp.text)
-        if '"count":null' in resp.text:
+        if '<h1>没有与此相关的结果' in resp.text:
             resp = await self.search(querry,num,ip_trans=True)
             # print(f"{use_ip} 被禁 删除")
             if use_ip!='0.0.0.0':
