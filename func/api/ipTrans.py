@@ -1,9 +1,12 @@
 """代理转发"""
 #!/usr/bin/python3
 
+import asyncio
+import random
 import time
 import hashlib
 import httpx
+from fake_useragent import UserAgent
 
 
 class IpTrans():
@@ -25,8 +28,32 @@ class IpTrans():
             'https://': f'http://{ip_port}',  # 代理2
         }
 
-    async def request_get(self,url,params):
+    async def request_get(self,url,params={}):
         """代理访问"""
-        async with httpx.AsyncClient(headers=self.headers,http2=True, proxies=self.proxies) as client:
+        async with httpx.AsyncClient(headers=self.headers,http2=True, proxies=self.proxies,verify=False) as client:
             resp = await client.get(url,params=params)
         return resp
+
+# async def run():
+#     user_agent = UserAgent().random
+#     muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
+#     headers = {
+#             "user-agent": user_agent,
+#             "referer": "https://www.bing.com/",
+#             "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50; MUID={muid};"
+#             # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
+#     }
+#     url = 'https://cn.bing.com/search'
+#     params = {
+#             "q": 'seo',
+#             "qs": "n",
+#             "pq": "fges",
+#             "mkt": "zh-CN", 
+#         }
+#     ip_trans = IpTrans(headers=headers)
+#     resp = await ip_trans.request_get(url,params)
+#     # resp = await ip_trans.request_get("http://icanhazip.com/")
+#     print(resp.text)
+
+# if __name__ == "__main__":
+#     asyncio.run(run())

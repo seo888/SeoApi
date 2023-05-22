@@ -42,11 +42,11 @@ class Bing():
             "mkt": "zh-CN", 
         }
         use_ip = await self.func.use_ip('bing')
-        muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
         # print(muid)
         # user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
         # user_agent = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/103.0.5060.134 Safari/537.36"
         user_agent = UserAgent().random
+        muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
         headers = {
             "user-agent": user_agent,
             "referer": "https://www.bing.com/",
