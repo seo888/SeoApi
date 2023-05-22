@@ -30,7 +30,7 @@ class Bing():
             resp = await client.get(url)
         return resp
 
-    @retry(stop=stop_after_attempt(2))
+    # @retry(stop=stop_after_attempt(2))
     async def search(self, querry, num,ip_trans=False):
         """搜索查询"""
         text = unquote(querry)
