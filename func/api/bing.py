@@ -34,24 +34,28 @@ class Bing():
         # """&sk=&cvid=0054FD091D974C3085B871C05A447372&ghsh=0&ghacc=0&ghpl="""
         params = {
             "q": text,
-        }
-        for k,v in {"qs": "n",
-            "from": 'QBLH',
-            "sp": '-1',
-            "lq": '0',
+            "qs": "n",
             "pq": "fges",
-            # "sc": "10-4",
-            "sk": "",
-            "ghpl": "",
-            "ghsh": "0",
-            "ghacc": "0",
             "mkt": "zh-CN", 
-            "setlang": "zh-Hans", 
-            "first": "1", 
-            "FORM": "PORE", 
-            }.items():
-            if random.randint(0,1):
-                params[k] = v
+        }
+        # for k,v in {"qs": "n",
+        #     # "from": 'QBLH',
+        #     # "sp": '-1',
+        #     # "lq": '0',
+        #     "pq": "fges",
+        #     # "sc": "10-4",
+        #     # "sk": "",
+        #     # "ghpl": "",
+        #     # "ghsh": "0",
+        #     # "ghacc": "0",
+        #     "mkt": "zh-CN", 
+        #     # "setlang": "zh-Hans", 
+        #     # "first": "1", 
+        #     # "FORM": "PORE", 
+        #     }.items():
+        #     if random.randint(0,1):
+        #         params[k] = v
+        # print(params)
         use_ip = await self.func.use_ip('bing')
         muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
         # print(muid)
