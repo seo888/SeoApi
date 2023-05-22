@@ -55,6 +55,7 @@ class Bing():
         }
         if ip_trans or use_ip=='0.0.0.0':
             ip_trans_client = IpTrans(headers)
+            url = url.replace('www.bing','cn.bing')
             resp = await ip_trans_client.request_get(url, params=params)
         else:
             resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip)
