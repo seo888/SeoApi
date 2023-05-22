@@ -58,7 +58,7 @@ class Bing():
             resp = await ip_trans_client.request_get(url, params=params)
         else:
             resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip)
-        print(resp.text)
+        # print(resp.text)
         if '<h1>没有与此相关的结果' in resp.text:
             resp = await self.search(querry,num,ip_trans=True)
             # print(f"{use_ip} 被禁 删除")
