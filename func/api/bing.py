@@ -30,7 +30,7 @@ class Bing():
             resp = await client.get(url)
         return resp
 
-    # @retry(stop=stop_after_attempt(2))
+    @retry(stop=stop_after_attempt(2))
     async def search(self, querry, num,ip_trans=False):
         """搜索查询"""
         text = unquote(querry)
@@ -60,7 +60,6 @@ class Bing():
         else:
             resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip)
         # print(resp.text)
-
         if '<h1>没有与此相关的结果' in resp.text:
             resp_text = await self.search(querry,num,ip_trans=True)
             # print(f"{use_ip} 被禁 删除")
