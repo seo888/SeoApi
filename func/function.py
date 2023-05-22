@@ -55,6 +55,8 @@ class Func():
             async with aiofiles.open(use_index_path, "a", encoding='utf-8')as txt_f:
                 await txt_f.write("")
         use_ips = self.get_lines(use_ips_path)
+        if use_ips==[]:
+            return '0.0.0.0'
         async with aiofiles.open(use_index_path, "r", encoding='utf-8')as txt_f:
             index_text = await txt_f.read()
         index = len(index_text)
