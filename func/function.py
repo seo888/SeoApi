@@ -97,7 +97,7 @@ class Func():
     def get_lines(self, path):
         """txt文件行数据"""
         linecache.checkcache(path)
-        result = [i.strip() for i in linecache.getlines(path) if len(i.strip())>0]
+        result = [i.strip() for i in linecache.getlines(path) if len(i.strip())>7]
         return result
     
     def get_text(self, path):
