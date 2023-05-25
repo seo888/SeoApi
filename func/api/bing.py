@@ -67,14 +67,10 @@ class Bing():
         }
         use_ip = await self.func.use_ip('bing')
         headers =self.get_headers(num)
-        print(url)
-        print(headers)
-        print(params)
         resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip,ip_trans=ip_trans)
         # print(resp.text)
         if '<h1>没有与此相关的结果' in resp.text:
             resp_text = await self.search(querry,num,ip_trans=True)
-            # print(f"{use_ip} 被禁 删除")
             if use_ip!='0.0.0.0':
                 print(f"{use_ip} bing被禁 删除")
                 path_dir = os.path.join("cache", arrow.now("Asia/Shanghai").format('YYYY-MM-DD'))
@@ -145,7 +141,7 @@ class Bing():
             return {"domain":full_domain,'querry': querry, 'include': include,"data": datas, 'next_url':next_url,'success': True}
         except Exception as err:
             print(err)
-            return {'querry': querry, 'info': str(err), 'success': False}
+            return {'querry': querry, 'error': str(err), 'success': False}
         
     async def get_include_next(self, querry,num):
         """获取下一页收录详情数据"""
@@ -177,7 +173,7 @@ class Bing():
             return {"domain":full_domain,'querry': querry, 'include': include,"data": datas, 'next_url':next_url,'success': True}
         except Exception as err:
             print(err)
-            return {'querry': querry, 'info': str(err), 'success': False}
+            return {'querry': querry, 'error': str(err), 'success': False}
 
 
     async def get_pulldown(self, querry):
