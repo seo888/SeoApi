@@ -78,6 +78,8 @@ class Router():
             self.register.domain_can_register('bing', result)
         elif action == BingAction.INCLUDE:
             result = await bing.get_include(q, num)
+        elif action == BingAction.INCLUDE_NEXT:
+            result = await bing.get_include_next(q,num)
         elif action == BingAction.PULLDOWN:
             result = await bing.get_pulldown(q)
         else:

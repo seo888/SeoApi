@@ -20,21 +20,45 @@ class Bing():
     def __init__(self, func):
         self.func = func
         self.config = self.func.get_yaml('config/config.yml')
+        self.root = 'https://www.bing.com'
 
-    async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1'):
+    async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1',ip_trans=False):
         """异步访问"""
-        transport = httpx.AsyncHTTPTransport(local_address=use_ip)
-        print(url,use_ip)
-        async with httpx.AsyncClient(
-                headers=headers, params=params, http2=True, transport=transport) as client:
-            resp = await client.get(url)
+        if ip_trans or use_ip=='0.0.0.0':
+            ip_trans_client = IpTrans(headers)
+            url = url.replace('//www.bing','//cn.bing')
+            if params is None:
+                resp = await ip_trans_client.request_get(url, params=params)
+            else:
+                resp = await ip_trans_client.request_get(url)
+        else:
+            transport = httpx.AsyncHTTPTransport(local_address=use_ip)
+            print(url,use_ip)
+            if params is None:
+                async with httpx.AsyncClient(headers=headers, http2=True, transport=transport) as client:
+                    resp = await client.get(url)
+            else:
+                async with httpx.AsyncClient(headers=headers, params=params, http2=True, transport=transport) as client:
+                    resp = await client.get(url)
         return resp
+
+    def get_headers(self,num):
+        """生成headers"""
+        user_agent = UserAgent().random
+        muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
+        headers = {
+            "user-agent": user_agent,
+            "referer": f"{self.root}/",
+            "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT={num}; MUID={muid};"
+            # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
+        }
+        return headers
 
     @retry(stop=stop_after_attempt(2))
     async def search(self, querry, num,ip_trans=False):
         """搜索查询"""
         text = unquote(querry)
-        url = 'https://www.bing.com/search'
+        url = f'{self.root}/search'
         params = {
             "q": text,
             "qs": "n",
@@ -42,23 +66,11 @@ class Bing():
             "mkt": "zh-CN", 
         }
         use_ip = await self.func.use_ip('bing')
-        # print(muid)
-        # user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
-        # user_agent = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/103.0.5060.134 Safari/537.36"
-        user_agent = UserAgent().random
-        muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
-        headers = {
-            "user-agent": user_agent,
-            "referer": "https://www.bing.com/",
-            "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50; MUID={muid};"
-            # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
-        }
-        if ip_trans or use_ip=='0.0.0.0':
-            ip_trans_client = IpTrans(headers)
-            url = url.replace('www.bing','cn.bing')
-            resp = await ip_trans_client.request_get(url, params=params)
-        else:
-            resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip)
+        headers =self.get_headers(num)
+        print(url)
+        print(headers)
+        print(params)
+        resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip,ip_trans=ip_trans)
         # print(resp.text)
         if '<h1>没有与此相关的结果' in resp.text:
             resp_text = await self.search(querry,num,ip_trans=True)
@@ -113,11 +125,13 @@ class Bing():
             # 查询site收录
             link = f"site:{full_domain}"
             resp_text = await self.search(link,num)
-            include_ = re.findall('约 (.*?) 个结果',resp_text)
+            include_ = re.findall('约 (.*?) 个结果',resp_text)+re.findall('共 (.*?) 条',resp_text)
             include = int(include_[0].replace(',','')) if len(include_)>0 else None
             if include is None:
                 return {"querry": querry, 'success': False, 'info': '必应验证码','from':self.config['【网站信息】']['程序名称']}
             tree = etree.HTML(resp_text)
+            next_url = tree.xpath('//a[@title="下一页"]/@href')
+            next_url = quote(self.root+unquote(next_url[0])) if len(next_url)>0 else None
             lis = tree.xpath('//main/ol/li[@class="b_algo"]')
             datas = []
             for index, li in enumerate(lis):
@@ -128,7 +142,39 @@ class Bing():
                 des = des[2:] if des.startswith('网页') else des
                 print(index+1, title, real_url,des)
                 datas.append({"id": index + 1, "title": title, "full_domain": full_domain, "domain": root_domain, "link": real_url,'des': des})
-            return {"domain":full_domain,'querry': querry, 'include': include,"data": datas, 'success': True}
+            return {"domain":full_domain,'querry': querry, 'include': include,"data": datas, 'next_url':next_url,'success': True}
+        except Exception as err:
+            print(err)
+            return {'querry': querry, 'info': str(err), 'success': False}
+        
+    async def get_include_next(self, querry,num):
+        """获取下一页收录详情数据"""
+        try:
+            url = unquote(querry)
+            headers = self.get_headers(num)
+            use_ip = await self.func.use_ip('bing')
+            resp = await self.request_get(url, headers=headers,use_ip=use_ip)
+            # with open('1.html','w',encoding='utf-8')as f:
+            #     f.write(resp.text)
+            if '<h1>没有与此相关的结果' in resp.text:
+                resp = await self.request_get(url, headers=headers,ip_trans=True)
+            resp_text = resp.text
+            include_ = re.findall('约 (.*?) 个结果',resp_text)+re.findall('共 (.*?) 条',resp_text)
+            include = int(include_[0].replace(',','')) if len(include_)>0 else None
+            tree = etree.HTML(resp_text)
+            next_url = tree.xpath('//a[@title="下一页"]/@href')
+            next_url = quote(self.root+unquote(next_url[0])) if len(next_url)>0 else None
+            lis = tree.xpath('//main/ol/li[@class="b_algo"]')
+            datas = []
+            for index, li in enumerate(lis):
+                title = li.xpath('.//h2')[0].xpath('string(.)').strip()
+                real_url = li.xpath('.//h2/a/@href')[0]
+                full_domain, root_domain = self.func.get_domain_info(real_url)[1:]
+                des = li.xpath('.//p')[0].xpath('string(.)').strip()
+                des = des[2:] if des.startswith('网页') else des
+                print(index+1, title, real_url,des)
+                datas.append({"id": index + 1, "title": title, "full_domain": full_domain, "domain": root_domain, "link": real_url,'des': des})
+            return {"domain":full_domain,'querry': querry, 'include': include,"data": datas, 'next_url':next_url,'success': True}
         except Exception as err:
             print(err)
             return {'querry': querry, 'info': str(err), 'success': False}

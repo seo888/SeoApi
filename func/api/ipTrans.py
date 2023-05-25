@@ -28,10 +28,14 @@ class IpTrans():
             'https://': f'http://{ip_port}',  # 代理2
         }
 
-    async def request_get(self,url,params={}):
+    async def request_get(self,url,params=None):
         """代理访问"""
-        async with httpx.AsyncClient(headers=self.headers,http2=True, proxies=self.proxies,verify=False) as client:
-            resp = await client.get(url,params=params)
+        if params is None:
+            async with httpx.AsyncClient(headers=self.headers,http2=True, proxies=self.proxies,verify=False) as client:
+                resp = await client.get(url)
+        else:
+            async with httpx.AsyncClient(headers=self.headers,http2=True, proxies=self.proxies,verify=False) as client:
+                resp = await client.get(url,params=params)
         return resp
 
 # async def run():

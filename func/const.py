@@ -25,6 +25,7 @@ class BingAction(str, Enum):
     SOURCE = "source"
     DATA = "data"
     INCLUDE = "include"
+    INCLUDE_NEXT = "include_next"
     PULLDOWN = "pulldown"
 
 
