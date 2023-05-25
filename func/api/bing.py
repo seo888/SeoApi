@@ -6,6 +6,8 @@ import os
 import re
 from urllib.parse import quote, unquote
 from fake_useragent import UserAgent
+from fastapi import Response
+from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 import httpx
 from lxml import etree
 from tenacity import retry, stop_after_attempt
@@ -117,14 +119,15 @@ class Bing():
         try:
             full_domain, domain = self.func.get_domain_info(querry)[1:]
             if "." not in domain:
-                return {'querry': querry, 'info': f'{querry} 非法域名', 'success': False}
+                return JSONResponse({'querry': querry, 'info': f'{querry} 非法域名', 'success': False})
             # 查询site收录
             link = f"site:{full_domain}"
             resp_text = await self.search(link,num)
             include_ = re.findall('约 (.*?) 个结果',resp_text)+re.findall('共 (.*?) 条',resp_text)
             include = int(include_[0].replace(',','')) if len(include_)>0 else None
             if include is None:
-                return {"querry": querry, 'success': False, 'info': '必应验证码','from':self.config['【网站信息】']['程序名称']}
+                return Response(content=resp_text, media_type='text/html;charset=utf-8')
+                # return JSONResponse({"querry": querry, 'success': False, 'info': '必应验证码','from':self.config['【网站信息】']['程序名称']})
             tree = etree.HTML(resp_text)
             next_url = tree.xpath('//a[@title="下一页"]/@href')
             next_url = quote(self.root+unquote(next_url[0])) if len(next_url)>0 else None
@@ -138,10 +141,10 @@ class Bing():
                 des = des[2:] if des.startswith('网页') else des
                 print(index+1, title, real_url,des)
                 datas.append({"id": index + 1, "title": title, "full_domain": full_domain, "domain": root_domain, "link": real_url,'des': des})
-            return {"domain":full_domain,'querry': querry, 'include': include,"data": datas, 'next_url':next_url,'success': True}
+            return JSONResponse({"domain":full_domain,'querry': querry, 'include': include,"data": datas, 'next_url':next_url,'success': True})
         except Exception as err:
             print(err)
-            return {'querry': querry, 'error': str(err), 'success': False}
+            return JSONResponse({'querry': querry, 'error': str(err), 'success': False})
         
     async def get_include_next(self, querry,num):
         """获取下一页收录详情数据"""

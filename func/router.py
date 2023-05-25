@@ -76,15 +76,18 @@ class Router():
             result = await bing.get_data(q, num)
             # 查询域名是否可注册
             self.register.domain_can_register('bing', result)
+            return JSONResponse(result)
         elif action == BingAction.INCLUDE:
-            result = await bing.get_include(q, num)
+            return await bing.get_include(q, num)
         elif action == BingAction.INCLUDE_NEXT:
             result = await bing.get_include_next(q,num)
+            return JSONResponse(result)
         elif action == BingAction.PULLDOWN:
             result = await bing.get_pulldown(q)
+            return JSONResponse(result)
         else:
             result = {'err_info':f'{action} 路径错误'}
-        return JSONResponse(result)
+            return JSONResponse(result)
 
     async def mir6(self, action, q):
         """谷歌接口"""
