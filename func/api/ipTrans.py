@@ -30,6 +30,7 @@ class IpTrans():
 
     async def request_get(self,url,params=None):
         """代理访问"""
+        print('代理转发：',url,params)
         if params is None:
             async with httpx.AsyncClient(headers=self.headers,http2=True, proxies=self.proxies,verify=False) as client:
                 resp = await client.get(url)
