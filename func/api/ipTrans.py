@@ -49,7 +49,7 @@ class IpTrans():
 #     }
 #     url = 'https://cn.bing.com/search'
 #     params = {
-#             "q": 'seo',
+#             "q": 'av online',
 #             "qs": "n",
 #             "pq": "fges",
 #             "mkt": "zh-CN", 
@@ -57,7 +57,7 @@ class IpTrans():
 #     ip_trans = IpTrans(headers=headers)
 #     resp = await ip_trans.request_get(url,params)
 #     # resp = await ip_trans.request_get("http://icanhazip.com/")
-#     print(resp.text)
+#     print(resp.text[:1000])
 
 # if __name__ == "__main__":
 #     asyncio.run(run())
