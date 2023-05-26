@@ -50,7 +50,7 @@ class Func():
         if not os.path.exists(use_ips_path):
             ips = list(set(self.ips))
             async with aiofiles.open(use_ips_path, "w", encoding='utf-8')as txt_f:
-                await txt_f.write("\n".join(ips))
+                await txt_f.write("\n".join(ips)+"\n")
         if not os.path.exists(use_index_path):
             async with aiofiles.open(use_index_path, "a", encoding='utf-8')as txt_f:
                 await txt_f.write("")

@@ -79,7 +79,7 @@ class Bing():
                 use_ips_path = os.path.join(path_dir, "bing_ips.txt")
                 async with aiofiles.open(use_ips_path, "r", encoding='utf-8')as txt_f:
                     ips_text = await txt_f.read()
-                new_ips_text = ips_text.replace(use_ip,'')
+                new_ips_text = ips_text.replace(use_ip+"\n",'\n')
                 async with aiofiles.open(use_ips_path, "w", encoding='utf-8')as txt_f:
                     await txt_f.write(new_ips_text)
             return resp_text
