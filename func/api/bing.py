@@ -28,7 +28,7 @@ class Bing():
         """异步访问"""
         if ip_trans or use_ip=='0.0.0.0':
             ip_trans_client = IpTrans(headers)
-            # url = url.replace('//www.bing','//cn.bing')
+            url = url.replace('//www.bing','//cn.bing')
             if params is None:
                 resp = await ip_trans_client.request_get(url)
             else:
