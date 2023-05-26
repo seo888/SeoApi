@@ -49,12 +49,12 @@ class Bing():
     def get_headers(self,num):
         """生成headers"""
         user_agent = UserAgent().random
-        muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
+        # muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
         headers = {
             "user-agent": user_agent,
             "referer": f"{self.root}/",
-            "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT={num}; MUID={muid};"
-            # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
+            # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT={num}; MUID={muid};"
+            "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
         }
         return headers
 
