@@ -22,26 +22,27 @@ class Bing():
     def __init__(self, func):
         self.func = func
         self.config = self.func.get_yaml('config/config.yml')
-        self.root = 'https://www.bing.com'
+        self.root = 'https://cn.bing.com'
 
     async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1',ip_trans=False):
         """异步访问"""
+        url = url.replace('//www.bing','//cn.bing')
         if ip_trans or use_ip=='0.0.0.0':
             ip_trans_client = IpTrans(headers)
-            url = url.replace('//www.bing','//cn.bing')
             if params is None:
                 resp = await ip_trans_client.request_get(url)
+                print(f'使用代理访问：{url}')
             else:
                 resp = await ip_trans_client.request_get(url, params=params)
-            print(f'使用代理访问：{url}')
+                print(f'使用代理访问：{url} {params}')
         else:
             transport = httpx.AsyncHTTPTransport(local_address=use_ip)
             print(url,use_ip)
             if params is None:
-                async with httpx.AsyncClient(headers=headers, http2=True, transport=transport) as client:
+                async with httpx.AsyncClient(headers=headers, transport=transport) as client:
                     resp = await client.get(url)
             else:
-                async with httpx.AsyncClient(headers=headers, params=params, http2=True, transport=transport) as client:
+                async with httpx.AsyncClient(headers=headers, params=params, transport=transport) as client:
                     resp = await client.get(url)
             print(f'使用IP[{use_ip}]访问：{url}')
         return resp
@@ -49,12 +50,12 @@ class Bing():
     def get_headers(self,num):
         """生成headers"""
         user_agent = UserAgent().random
-        # muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
+        muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
         headers = {
             "user-agent": user_agent,
             "referer": f"{self.root}/",
-            # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT={num}; MUID={muid};"
-            "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
+            # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT={num};"
+            "cookie": "f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
         }
         return headers
 
