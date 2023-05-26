@@ -33,6 +33,7 @@ class Bing():
                 resp = await ip_trans_client.request_get(url, params=params)
             else:
                 resp = await ip_trans_client.request_get(url)
+            print(f'使用代理访问：{url}')
         else:
             transport = httpx.AsyncHTTPTransport(local_address=use_ip)
             print(url,use_ip)
@@ -42,6 +43,7 @@ class Bing():
             else:
                 async with httpx.AsyncClient(headers=headers, params=params, http2=True, transport=transport) as client:
                     resp = await client.get(url)
+            print(f'使用IP[{use_ip}]访问：{url}')
         return resp
 
     def get_headers(self,num):
