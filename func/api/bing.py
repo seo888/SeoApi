@@ -30,9 +30,9 @@ class Bing():
             ip_trans_client = IpTrans(headers)
             # url = url.replace('//www.bing','//cn.bing')
             if params is None:
-                resp = await ip_trans_client.request_get(url, params=params)
-            else:
                 resp = await ip_trans_client.request_get(url)
+            else:
+                resp = await ip_trans_client.request_get(url, params=params)
             print(f'使用代理访问：{url}')
         else:
             transport = httpx.AsyncHTTPTransport(local_address=use_ip)
