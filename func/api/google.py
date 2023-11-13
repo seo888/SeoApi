@@ -68,12 +68,16 @@ class Google():
             if count is None:
                 return {"querry": querry, 'success': False, 'info': '谷歌验证码','from':self.config['【网站信息】']['程序名称']}
             tree = etree.HTML(resp_text)
+            # divs = tree.xpath('//div[@class="yuRUbf"]')
             divs = tree.xpath('//div[@class="yuRUbf"]')
+            # divs = tree.xpath('//div[@id="search"]')
             datas = []
             for index, div in enumerate(divs):
                 try:
                     title = div.xpath('.//h3')[0].xpath('string(.)').strip()
-                    real_url = div.xpath('./a/@href')[0]
+                    print(title)
+                    real_url = div.xpath('./div/span/a/@href')[0]
+                    print(real_url)
                     full_domain, root_domain = self.func.get_domain_info(real_url)[1:]
                     des = div.xpath('../..//div[@data-snf="nke7rc"]')[0].xpath('string(.)').strip()
                     datas.append({"id": index + 1, "title": title,

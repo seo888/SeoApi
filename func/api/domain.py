@@ -111,5 +111,5 @@ class Register():
                 des = i['des']
                 if domain not in query_dict:
                     query_dict[domain] = [web,keyword,index,url,title,des]
-            for domain,v in query_dict.items():
-                self.executor.submit(self.find_domain,config,domain,*v)
+            # for domain,v in query_dict.items():
+            #     self.executor.submit(self.find_domain,config,domain,*v)
