@@ -14,7 +14,7 @@ class IpTrans():
     """代理转发"""
 
     def __init__(self,headers):
-        orderno = "ZF20235228137OCaZ4F"
+        orderno = "ZF20235265897ukIela"
         secret = "177062c03c7a4669ad4a2822584fe07c"
         ip_port = "forward.xdaili.cn:80"
         timestamp = str(int(time.time()))
@@ -35,32 +35,7 @@ class IpTrans():
             async with httpx.AsyncClient(headers=self.headers, proxies=self.proxies,verify=False) as client:
                 resp = await client.get(url)
         else:
+            print(url,self.headers)
             async with httpx.AsyncClient(headers=self.headers, proxies=self.proxies,verify=False) as client:
                 resp = await client.get(url,params=params)
         return resp
-
-# async def run():
-#     user_agent = UserAgent().random
-#     muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
-#     headers = {
-#             "user-agent": user_agent,
-#             "referer": "https://www.bing.com/",
-#             "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50; MUID={muid};"
-#             # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
-#     }
-#     url = 'https://cn.bing.com/search'
-#     params = {
-#             "q": 'av online',
-#             "qs": "n",
-#             "pq": "fges",
-#             "mkt": "zh-CN", 
-#         }
-#     url = 'https%3A//cn.bing.com/search%3Fq%3Dsite%3Aidcqs.cn%26qs%3Dn%26pq%3Dfges%26mkt%3Dzh-CN%26first%3D21%26FORM%3DPORE'
-#     ip_trans = IpTrans(headers=headers)
-#     # resp = await ip_trans.request_get(unquote(url),params=params)
-#     resp = await ip_trans.request_get(unquote(url))
-#     # resp = await ip_trans.request_get("http://icanhazip.com/")
-#     print(resp.text[:1000])
-
-# if __name__ == "__main__":
-#     asyncio.run(run())

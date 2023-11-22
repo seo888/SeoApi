@@ -15,8 +15,8 @@ class Register():
 
     def __init__(self,func):
         self.GS_bing = GoogleSheet("必应扫域名")
-        self.GS_baidu = GoogleSheet("谷歌扫域名")
-        self.GS_google = GoogleSheet("百度扫域名")
+        self.GS_baidu = GoogleSheet("百度扫域名")
+        self.GS_google = GoogleSheet("谷歌扫域名")
         self.func = func
         self.executor = ThreadPoolExecutor(32)
         # self.telegram_token = "6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJYs"
@@ -29,7 +29,6 @@ class Register():
         use_ip = random.choice(self.func.ips)
         client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
         resp = client.get(url,headers=headers)
-        # print(resp.text)
         if 'Domain name is available' in resp.text:
             return True
         return False
@@ -41,7 +40,6 @@ class Register():
         use_ip = random.choice(self.func.ips)
         client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
         resp = client.get(url,headers=headers)
-        # print(resp.text)
         if 'can be registered' in resp.text:
             return True
         return False
@@ -91,11 +89,10 @@ class Register():
         loop.run_until_complete(Telegram(telegram_token).send_mes(tele_mes,telegram_group_chat_id))
         loop.close()
 
-
     def find_domain(self,config, domain, web, keyword, index, url,title, des):
         """扫域名"""
-        # try:
-        if True:
+        try:
+        # if True:
             path_dir = os.path.join("cache", arrow.now("Asia/Shanghai").format('YYYY-MM-DD'))
             os.makedirs(path_dir, exist_ok=True)
             register_path = os.path.join(path_dir, "register.txt")
@@ -134,8 +131,8 @@ class Register():
                     log_f.write(mes+'\n')
             else:
                 print(f'[{web}]{domain}||已经存在，跳过查询')
-        # except Exception as err:
-        #     print('扫域名报错：',domain,err)
+        except Exception as err:
+            print('扫域名报错：',domain,err)
 
     def domain_can_register(self,web,result):
         """查询域名data结果是否有可以注册的域名"""

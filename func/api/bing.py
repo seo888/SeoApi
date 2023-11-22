@@ -26,7 +26,7 @@ class Bing():
 
     async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1',ip_trans=False):
         """异步访问"""
-        url = url.replace('//www.bing','//cn.bing')
+        # url = url.replace('//www.bing','//cn.bing')
         if ip_trans or use_ip=='0.0.0.0':
             ip_trans_client = IpTrans(headers)
             if params is None:
@@ -50,17 +50,15 @@ class Bing():
     def get_headers(self,num):
         """生成headers"""
         user_agent = UserAgent().random
-        muid = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz'.upper()+"0123456789",k=32))
         headers = {
             "user-agent": user_agent,
-            "referer": f"{self.root}/",
-            # "cookie": f"f_EDGE_V=1; SRCHHPGUSR=NRSLT={num};"
-            "cookie": "f_EDGE_V=1; SRCHHPGUSR=NRSLT=50;"
+            "referer": f"{self.root}/search",
+            "cookie": """MUID=17C7DC52674C6A2435F4CF9866DB6B3C; MUIDB=17C7DC52674C6A2435F4CF9866DB6B3C; SRCHD=AF=NOFORM; SRCHUID=V=2&GUID=B47F03495C714DDCB9E5D6B26602C303&dmnchg=1; _UR=cdxcls=0&QS=0&TQS=0; SRCHUSR=DOB=20231115&T=1700060974000; _HPVN=CS=eyJQbiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiUCJ9LCJTYyI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiSCJ9LCJReiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiVCJ9LCJBcCI6dHJ1ZSwiTXV0ZSI6dHJ1ZSwiTGFkIjoiMjAyMy0xMS0xNVQwMDowMDowMFoiLCJJb3RkIjowLCJHd2IiOjAsIkRmdCI6bnVsbCwiTXZzIjowLCJGbHQiOjAsIkltcCI6MiwiVG9iYnMiOjB9; _Rwho=u=d; MicrosoftApplicationsTelemetryDeviceId=fa3e4ed4-dd79-4159-899a-def4927b80a9; ai_session=2pO5vAD29GrbbXasfbLZQq|1700060985093|1700060985093; ipv6=hit=1700064585114&t=6; _EDGE_S=SID=213AD3DE177B6C2D3C9AC01416D26D51&mkt=en-my; USRLOC=HS=1&ELOC=LAT=3.1514859199523926|LON=101.71142578125|N=Bandar%20Kuala%20Lumpur%EF%BC%8C%E5%90%89%E9%9A%86%E5%9D%A1|ELT=4|; _RwBf=r=0&ilt=4&ihpd=1&ispd=2&rc=6&rb=0&gb=0&rg=200&pc=3&mtu=0&rbb=0&g=0&cid=&clo=0&v=4&l=2023-11-15T08:00:00.0000000Z&lft=0001-01-01T00:00:00.0000000&aof=0&o=2&p=&c=&t=0&s=0001-01-01T00:00:00.0000000+00:00&ts=2023-11-15T15:10:02.7835801+00:00&rwred=0&wls=&wlb=&lka=0&lkt=0&aad=0&TH=; _SS=SID=213AD3DE177B6C2D3C9AC01416D26D51&R=6&RB=0&GB=0&RG=200&RP=3; SRCHHPGUSR=SRCHLANG=zh-Hans&IG=51D5854974A8423EAEFEADE20212B27D&PV=15.0.0&BRW=S&BRH=M&CW=1104&CH=838&SCW=1164&SCH=8865&DPR=1.5&UTC=480&DM=0&WTS=63835657774&HV=1700061011&PRVCW=1659&PRVCH=838&EXLTT=2&EXLKNT=1&NRSLT=50&LSL=0&AS=1&ADLT=STRICT&NNT=1&HAP=0&VSRO=1&CHTRSP=1&SRTOBRR=2"""
         }
         return headers
 
-    @retry(stop=stop_after_attempt(2))
-    async def search(self, querry, num,ip_trans=False):
+    @retry(stop=stop_after_attempt(3))
+    async def search(self, querry, num,ip_trans=True):
         """搜索查询"""
         text = unquote(querry)
         url = f'{self.root}/search'
@@ -73,7 +71,6 @@ class Bing():
         use_ip = await self.func.use_ip('bing')
         headers =self.get_headers(num)
         resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip,ip_trans=ip_trans)
-        # print(resp.text)
         if '<h1>没有与此相关的结果' in resp.text:
             resp_text = await self.search(querry,num,ip_trans=True)
             if use_ip!='0.0.0.0':
@@ -88,10 +85,11 @@ class Bing():
             return resp_text
         return resp.text
 
+
     async def get_source(self, querry, num):
         """获取搜索结果源码"""
         try:
-            result = await self.search(querry, num)
+            result = await self.search(querry, num,ip_trans=True)
             return {'success': True, 'keyword': querry, 'result': result}
         except Exception as err:
             print(err)
@@ -99,7 +97,7 @@ class Bing():
 
     async def get_data(self, querry, num):
         """获取搜索结果data数据"""
-        resp_text = await self.search(querry, num)
+        resp_text = await self.search(querry, num,ip_trans=True)
         count_ = re.findall('约 (.*?) 个结果', resp_text)
         count = int(count_[0].replace(',', '')) if len(count_) > 0 else None
         tree = etree.HTML(resp_text)
@@ -125,13 +123,12 @@ class Bing():
                 return {'querry': querry, 'info': f'{querry} 非法域名', 'success': False}
             # 查询site收录
             link = f"site:{full_domain}"
-            resp_text = await self.search(link,num)
+            resp_text = await self.search(link,num,ip_trans=True)
             if '<h2>Object moved to' in resp_text:
                 return {"querry": querry, 'success': False, 'info': 'Object moved to','from':self.config['【网站信息】']['程序名称']}
             include_ = re.findall('约 (.*?) 个结果',resp_text)+re.findall('共 (.*?) 条',resp_text)
             include = int(include_[0].replace(',','')) if len(include_)>0 else None
             if include is None:
-                # return Response(content=resp_text, media_type='text/html;charset=utf-8')
                 return {"querry": querry, 'success': False, 'info': '必应验证码','from':self.config['【网站信息】']['程序名称']}
             tree = etree.HTML(resp_text)
             next_url = tree.xpath('//a[@title="下一页"]/@href')

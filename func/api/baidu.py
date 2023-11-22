@@ -189,8 +189,7 @@ class Baidu():
             if include is None:
                 include_ = re.findall('找到相关结果数约(.*?)个',resp_text)
                 include = int(include_[0].replace(',','')) if len(include_)>0 else None
-            results = tree.xpath(
-                "//div[contains(concat(' ', @class, ' '), 'result')]")
+            results = tree.xpath("//div[contains(concat(' ', @class, ' '), 'result')]")
             datas = []
             for index, result in enumerate(results):
                 srcid_ = result.xpath("@srcid")
