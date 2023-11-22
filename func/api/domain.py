@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import os
 import random
+import asyncio
 import arrow
 import tldextract
 import httpx
@@ -28,6 +29,7 @@ class Register():
         use_ip = random.choice(self.func.ips)
         client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
         resp = client.get(url,headers=headers)
+        # print(resp.text)
         if 'Domain name is available' in resp.text:
             return True
         return False
@@ -39,6 +41,7 @@ class Register():
         use_ip = random.choice(self.func.ips)
         client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
         resp = client.get(url,headers=headers)
+        # print(resp.text)
         if 'can be registered' in resp.text:
             return True
         return False
@@ -66,10 +69,12 @@ class Register():
 
     def can_register(self, domain):
         """域名可注册"""
-        try:
-            register_ok = self.net_cn(domain)
-        except:
+        try: 
+            # register_ok = self.net_cn(domain)
             register_ok = self.sedo_com(domain)
+        except:
+            # register_ok = self.sedo_com(domain)
+            register_ok = self.net_cn(domain)
         return register_ok
 
     def write_gsheet(self,web,datas):
@@ -80,9 +85,17 @@ class Register():
         elif web=='baidu':
             self.GS_baidu.insert_rows(datas)
 
+    def send_tg(self,tele_mes,telegram_token,telegram_group_chat_id):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(Telegram(telegram_token).send_mes(tele_mes,telegram_group_chat_id))
+        loop.close()
+
+
     def find_domain(self,config, domain, web, keyword, index, url,title, des):
         """扫域名"""
-        try:
+        # try:
+        if True:
             path_dir = os.path.join("cache", arrow.now("Asia/Shanghai").format('YYYY-MM-DD'))
             os.makedirs(path_dir, exist_ok=True)
             register_path = os.path.join(path_dir, "register.txt")
@@ -108,8 +121,7 @@ class Register():
                             telegram_token = config['【机器人配置】']['telegram_token']
                             telegram_group_chat_id = config['【机器人配置】']['telegram_group_chat_id']
                             if telegram_token!='' and telegram_group_chat_id!='':
-                                return_mes = Telegram(telegram_token).send_mes(tele_mes,telegram_group_chat_id)
-                                print(return_mes)
+                                self.send_tg(tele_mes,telegram_token,telegram_group_chat_id)
                             # 数据写入谷歌表格
                             subdomain, full_domain, root_domain = self.func.get_domain_info(url)
                             is_main = "主站" if subdomain in ['','www'] else "泛站"
@@ -122,8 +134,8 @@ class Register():
                     log_f.write(mes+'\n')
             else:
                 print(f'[{web}]{domain}||已经存在，跳过查询')
-        except Exception as err:
-            print('扫域名报错：',domain,err)
+        # except Exception as err:
+        #     print('扫域名报错：',domain,err)
 
     def domain_can_register(self,web,result):
         """查询域名data结果是否有可以注册的域名"""
