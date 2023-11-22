@@ -6,14 +6,30 @@ import random
 import arrow
 import tldextract
 import httpx
+from func.tg import Telegram
+from func.googleSheet import GoogleSheet
+
 
 
 class Register():
     """域名可注册接口"""
 
     def __init__(self,func):
+        self.GS_bing = GoogleSheet("必应扫域名")
+        self.GS_baidu = GoogleSheet("谷歌扫域名")
+        self.GS_google = GoogleSheet("百度扫域名")
         self.func = func
         self.executor = ThreadPoolExecutor(32)
+        self.info = self.run_info()
+        self.telegram_token = "6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJYs"
+        self.telegram_group_chat_id = "-794028075"
+
+    def run_info(self):
+        # Generate a unique ID for the current session
+        session_id = uuid.uuid1()
+        beijing_time = arrow.now('Asia/Shanghai')
+        info = f"uuid:{session_id} start:{beijing_time}"
+        return info
         
     def net_cn(self,domain):
         url = f"http://panda.www.net.cn/cgi-bin/check.cgi?area_domain={domain}"
@@ -66,6 +82,14 @@ class Register():
             register_ok = self.sedo_com(domain)
         return register_ok
 
+    def write_gsheet(self,web,datas):
+        if web=='bing':
+            self.GS_bing.insert_rows(datas)
+        elif web=='google':
+            self.GS_google.insert_rows(datas)
+        elif web=='baidu':
+            self.GS_baidu.insert_rows(datas)
+
     def find_domain(self,config, domain, web, keyword, index, url,title, des):
         """扫域名"""
         try:
@@ -89,15 +113,15 @@ class Register():
                                 'google':f'[{keyword}](https://www.google.com/search?q={keyword})',
                                 'baidu':f'[{keyword}](https://www.baidu.com/s?wd={keyword})',
                             }
+                            # 发送到telegram群组
                             tele_mes = mes.replace(f'【{web}】',webs[web]).replace(f'‖{keyword}‖',f'‖{keyword_dict[web]}‖')
-                            url = f"http://{config['【网站信息】']['绑定域名']}/telegram/send"
-                            params = {
-                                "text": tele_mes,
-                                "token": config['【功能开关】']['telegram_token'],
-                                "to_id": config['【功能开关】']['telegram_group_chat_id'],
-                            }
-                            resp = httpx.get(url,params=params)
-                            print(resp.text)
+                            return_mes = Telegram(self.telegram_token).send_mes(tele_mes,self.telegram_group_chat_id)
+                            print(return_mes)
+                            # 数据写入谷歌表格
+                            subdomain, full_domain, root_domain = self.func.get_domain_info(url)
+                            is_main = "主站" if subdomain in ['','www'] else "泛站"
+                            is_index = "首页" if (url_split:=url.split(full_domain,1))[1] in ['/',''] else "内页"
+                            self.executor.submit(self.write_gsheet,web,[now_time,web,domain,keyword,index,url,is_main,is_index,title,des,self.info])
                 else:
                     print(mes:=f'{now_time}【{web}】‖{domain}‖❌‖{keyword}‖{index}‖{url}‖{title}')
                 with open(register_path,'a',encoding='utf-8')as log_f:
