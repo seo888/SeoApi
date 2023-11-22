@@ -1,14 +1,12 @@
 """域名可注册接口"""
-
 from concurrent.futures import ThreadPoolExecutor
 import os
 import random
 import arrow
 import tldextract
 import httpx
-from func.tg import Telegram
-from func.googleSheet import GoogleSheet
-
+from func.api.tg import Telegram
+from func.api.googleSheet import GoogleSheet
 
 
 class Register():
@@ -20,16 +18,8 @@ class Register():
         self.GS_google = GoogleSheet("百度扫域名")
         self.func = func
         self.executor = ThreadPoolExecutor(32)
-        self.info = self.run_info()
-        self.telegram_token = "6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJYs"
-        self.telegram_group_chat_id = "-794028075"
-
-    def run_info(self):
-        # Generate a unique ID for the current session
-        session_id = uuid.uuid1()
-        beijing_time = arrow.now('Asia/Shanghai')
-        info = f"uuid:{session_id} start:{beijing_time}"
-        return info
+        # self.telegram_token = "6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJYs"
+        # self.telegram_group_chat_id = "-794028075"
         
     def net_cn(self,domain):
         url = f"http://panda.www.net.cn/cgi-bin/check.cgi?area_domain={domain}"
@@ -115,13 +105,17 @@ class Register():
                             }
                             # 发送到telegram群组
                             tele_mes = mes.replace(f'【{web}】',webs[web]).replace(f'‖{keyword}‖',f'‖{keyword_dict[web]}‖')
-                            return_mes = Telegram(self.telegram_token).send_mes(tele_mes,self.telegram_group_chat_id)
-                            print(return_mes)
+                            telegram_token = config['【机器人配置】']['telegram_token']
+                            telegram_group_chat_id = config['【机器人配置】']['telegram_group_chat_id']
+                            if telegram_token!='' and telegram_group_chat_id!='':
+                                return_mes = Telegram(telegram_token).send_mes(tele_mes,telegram_group_chat_id)
+                                print(return_mes)
                             # 数据写入谷歌表格
                             subdomain, full_domain, root_domain = self.func.get_domain_info(url)
                             is_main = "主站" if subdomain in ['','www'] else "泛站"
                             is_index = "首页" if (url_split:=url.split(full_domain,1))[1] in ['/',''] else "内页"
-                            self.executor.submit(self.write_gsheet,web,[now_time,web,domain,keyword,index,url,is_main,is_index,title,des,self.info])
+                            info = f"{config['【网站信息】']['绑定域名']} | {str(arrow.now('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'))}"
+                            self.executor.submit(self.write_gsheet,web,[now_time,web,domain,keyword,index,url,is_main,is_index,title,des,info])
                 else:
                     print(mes:=f'{now_time}【{web}】‖{domain}‖❌‖{keyword}‖{index}‖{url}‖{title}')
                 with open(register_path,'a',encoding='utf-8')as log_f:
