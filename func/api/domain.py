@@ -22,8 +22,18 @@ class Register():
         use_ip = random.choice(self.func.ips)
         client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
         resp = client.get(url,headers=headers)
-        # print(resp.text)
         if 'Domain name is available' in resp.text:
+            return True
+        return False
+
+    def sedo_com(self,domain):
+        url = f"https://sedo.com/brokerage/acquisition.php?domain={domain}&origin=partner"
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
+        headers = {"user-agent": user_agent,}
+        use_ip = random.choice(self.func.ips)
+        client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
+        resp = client.get(url,headers=headers)
+        if 'can be registered' in resp.text:
             return True
         return False
 
@@ -53,7 +63,7 @@ class Register():
         try:
             register_ok = self.net_cn(domain)
         except:
-            register_ok = self.idcqs(domain)
+            register_ok = self.sedo_com(domain)
         return register_ok
 
     def find_domain(self,config, domain, web, keyword, index, url,title, des):
@@ -111,5 +121,5 @@ class Register():
                 des = i['des']
                 if domain not in query_dict:
                     query_dict[domain] = [web,keyword,index,url,title,des]
-            # for domain,v in query_dict.items():
-            #     self.executor.submit(self.find_domain,config,domain,*v)
+            for domain,v in query_dict.items():
+                self.executor.submit(self.find_domain,config,domain,*v)
