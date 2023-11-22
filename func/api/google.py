@@ -68,9 +68,7 @@ class Google():
             if count is None:
                 return {"querry": querry, 'success': False, 'info': '谷歌验证码','from':self.config['【网站信息】']['程序名称']}
             tree = etree.HTML(resp_text)
-            # divs = tree.xpath('//div[@class="yuRUbf"]')
             divs = tree.xpath('//div[@class="yuRUbf"]')
-            # divs = tree.xpath('//div[@id="search"]')
             datas = []
             for index, div in enumerate(divs):
                 try:

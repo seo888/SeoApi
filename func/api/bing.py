@@ -18,7 +18,6 @@ from func.api.ipTrans import IpTrans
 
 class Bing():
     """必应功能"""
-
     def __init__(self, func):
         self.func = func
         self.config = self.func.get_yaml('config/config.yml')
@@ -37,7 +36,6 @@ class Bing():
                 print(f'使用代理访问：{url} {params}')
         else:
             transport = httpx.AsyncHTTPTransport(local_address=use_ip)
-            print(url,use_ip)
             if params is None:
                 async with httpx.AsyncClient(headers=headers, transport=transport) as client:
                     resp = await client.get(url)
