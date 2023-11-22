@@ -35,7 +35,6 @@ class IpTrans():
             async with httpx.AsyncClient(headers=self.headers, proxies=self.proxies,verify=False) as client:
                 resp = await client.get(url)
         else:
-            print(url,self.headers)
             async with httpx.AsyncClient(headers=self.headers, proxies=self.proxies,verify=False) as client:
                 resp = await client.get(url,params=params)
         return resp

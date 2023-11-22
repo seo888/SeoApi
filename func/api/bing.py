@@ -25,7 +25,7 @@ class Bing():
 
     async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1',ip_trans=False):
         """异步访问"""
-        # url = url.replace('//www.bing','//cn.bing')
+        url = url.replace('//www.bing','//cn.bing')
         if ip_trans or use_ip=='0.0.0.0':
             ip_trans_client = IpTrans(headers)
             if params is None:
@@ -62,8 +62,8 @@ class Bing():
         url = f'{self.root}/search'
         params = {
             "q": text,
-            "qs": "n",
-            "pq": "fges",
+            # "qs": "n",
+            # "pq": "fges",
             "mkt": "zh-CN", 
         }
         use_ip = await self.func.use_ip('bing')
