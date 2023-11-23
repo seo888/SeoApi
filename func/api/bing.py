@@ -25,25 +25,29 @@ class Bing():
 
     async def request_get(self, url, headers=None, params=None, use_ip='127.0.0.1',ip_trans=False):
         """异步访问"""
-        url = url.replace('//www.bing','//cn.bing')
-        if ip_trans or use_ip=='0.0.0.0':
-            ip_trans_client = IpTrans(headers)
-            if params is None:
-                resp = await ip_trans_client.request_get(url)
-                print(f'使用代理访问：{url}')
+        try:
+            url = url.replace('//www.bing','//cn.bing')
+            if ip_trans or use_ip=='0.0.0.0':
+                ip_trans_client = IpTrans(headers)
+                if params is None:
+                    resp = await ip_trans_client.request_get(url)
+                    print(f'使用代理访问：{url}')
+                else:
+                    resp = await ip_trans_client.request_get(url, params=params)
+                    print(f'使用代理访问：{url} {params}')
             else:
-                resp = await ip_trans_client.request_get(url, params=params)
-                print(f'使用代理访问：{url} {params}')
-        else:
-            transport = httpx.AsyncHTTPTransport(local_address=use_ip)
-            if params is None:
-                async with httpx.AsyncClient(headers=headers, transport=transport) as client:
-                    resp = await client.get(url)
-            else:
-                async with httpx.AsyncClient(headers=headers, params=params, transport=transport) as client:
-                    resp = await client.get(url)
-            print(f'使用IP[{use_ip}]访问：{url}')
-        return resp
+                transport = httpx.AsyncHTTPTransport(local_address=use_ip)
+                if params is None:
+                    async with httpx.AsyncClient(headers=headers, transport=transport) as client:
+                        resp = await client.get(url)
+                else:
+                    async with httpx.AsyncClient(headers=headers, params=params, transport=transport) as client:
+                        resp = await client.get(url)
+                print(f'使用IP[{use_ip}]访问：{url}')
+            return resp
+        except Exception as err:
+            print(err)
+            return ''
 
     def get_headers(self,num):
         """生成headers"""
@@ -74,6 +78,9 @@ class Bing():
         use_ip = await self.func.use_ip('bing')
         headers =self.get_headers(num)
         resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip,ip_trans=ip_trans)
+        if resp=='':
+            return ''
+
         if '<h1>没有与此相关的结果' in resp.text:
             resp_text = await self.search(querry,num,ip_trans=True)
             if use_ip!='0.0.0.0':
