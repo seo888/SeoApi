@@ -34,7 +34,7 @@ class Router():
         if action == BaiduAction.DATA:
             result = await baidu.get_data(q, num)
             # 查询域名是否可注册
-            self.register.domain_can_register('baidu', result)
+            # self.register.domain_can_register('baidu', result)
         elif action == BaiduAction.INCLUDED:
             result = await baidu.get_included(q, num)
         elif action == BaiduAction.INCLUDE:
@@ -54,7 +54,7 @@ class Router():
         if action == GoogleAction.DATA:
             result = await google.get_data(q, num)
             # 查询域名是否可注册
-            self.register.domain_can_register('google', result)
+            # self.register.domain_can_register('google', result)
         elif action == GoogleAction.INCLUDE:
             result = await google.get_include(q, num)
         elif action == GoogleAction.PULLDOWN:
@@ -75,7 +75,7 @@ class Router():
         elif action == BingAction.DATA:
             result = await bing.get_data(q, num)
             # 查询域名是否可注册
-            self.register.domain_can_register('bing', result)
+            # self.register.domain_can_register('bing', result)
         elif action == BingAction.INCLUDE:
             result = await bing.get_include(q, num)
         elif action == BingAction.INCLUDE_NEXT:
