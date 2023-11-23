@@ -50,10 +50,10 @@ func = Func()
 # 路由引用
 router = Router()
 
-# @app.middleware("http")
-# async def middleware(request: Request, call_next):
-#     """中间件 访问前后"""
-#     return await middle.middleware(request, call_next, func)
+@app.middleware("http")
+async def middleware(request: Request, call_next):
+    """中间件 访问前后"""
+    return await middle.middleware(request, call_next, func)
 
 @app.get("/telegram/send", tags=["telegram"],
          name="【telegram】Send Message",
