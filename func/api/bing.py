@@ -55,7 +55,7 @@ class Bing():
         }
         return headers
 
-    @retry(stop=stop_after_attempt(2))
+    # @retry(stop=stop_after_attempt(2))
     async def search(self, querry, num,ip_trans=True):
         """搜索查询"""
         text = unquote(querry)
