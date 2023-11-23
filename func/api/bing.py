@@ -107,6 +107,8 @@ class Bing():
     async def get_data(self, querry, num):
         """获取搜索结果data数据"""
         resp_text = await self.search(querry, num,ip_trans=True)
+        if resp_text=='':
+            return {"keyword": querry, 'info': f'{querry} 代理访问失败', 'success': False}
         count_ = re.findall('约 (.*?) 个结果', resp_text)
         count = int(count_[0].replace(',', '')) if len(count_) > 0 else None
         tree = etree.HTML(resp_text)
