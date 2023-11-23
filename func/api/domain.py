@@ -23,24 +23,27 @@ class Register():
         # self.telegram_token = "6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJYs"
         # self.telegram_group_chat_id = "-794028075"
         
-    def net_cn(self,domain):
+    async def net_cn(self,domain):
         url = f"http://panda.www.net.cn/cgi-bin/check.cgi?area_domain={domain}"
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
         headers = {"user-agent": user_agent,}
         use_ip = random.choice(self.func.ips)
-        client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
+        transport = httpx.AsyncHTTPTransport(local_address=use_ip)
+        async with httpx.AsyncClient(transport=transport) as client:
+            resp = await client.get(url,headers=headers)
         resp = client.get(url,headers=headers)
         if 'Domain name is available' in resp.text:
             return True
         return False
 
-    def sedo_com(self,domain):
+    async def sedo_com(self,domain):
         url = f"https://sedo.com/brokerage/acquisition.php?domain={domain}&origin=partner"
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
         headers = {"user-agent": user_agent,}
         use_ip = random.choice(self.func.ips)
-        client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
-        resp = client.get(url,headers=headers)
+        transport = httpx.AsyncHTTPTransport(local_address=use_ip)
+        async with httpx.AsyncClient(transport=transport) as client:
+            resp = await client.get(url,headers=headers)
         if 'can be registered' in resp.text:
             return True
         return False
@@ -66,14 +69,12 @@ class Register():
             return True
         return False
 
-    def can_register(self, domain):
+    async def can_register(self, domain):
         """域名可注册"""
         try: 
-            # register_ok = self.net_cn(domain)
-            register_ok = self.sedo_com(domain)
+            register_ok = await self.sedo_com(domain)
         except:
-            # register_ok = self.sedo_com(domain)
-            register_ok = self.net_cn(domain)
+            register_ok = await self.net_cn(domain)
         return register_ok
 
     def write_gsheet(self,web,datas):

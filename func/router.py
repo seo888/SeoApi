@@ -94,6 +94,15 @@ class Router():
         else:
             result = {'err_info':f'{action} 路径错误'}
         return JSONResponse(result)
+    
+    async def domain(self, action, q):
+        """谷歌接口"""
+        if action == DomainAction.DOMAIN:
+            result = await Register(self.func).can_register(q)
+        else:
+            result = False
+        result_= {'domain':q,'可注册':result}
+        return JSONResponse(result_)
 
     async def tg_send(self, text, token, to_id):
         """给指定telegram频道或用户发送消息"""

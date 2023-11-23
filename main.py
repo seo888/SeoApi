@@ -68,7 +68,7 @@ async def telegram_send(request: Request, text=None, token=None, to_id=None):
 
 @app.get("/domains/{mode}")
 async def domains(mode: DomainsAction, day=None):
-    """扫描的可注册域名"""
+    """展示扫描的可注册域名"""
     return await router.show_domains(mode,day)
 
 @app.get("/s")
@@ -125,6 +125,13 @@ async def mir6(action: Mir6Action, q: str = None):
     if q is None:
         return JSONResponse(status_code=404, content={"error": '参数错误'})
     return await router.mir6(action, q)
+
+@app.get("/domain/{action}", tags=["域名"])
+async def domain(action: DomainAction, q: str = None):
+    """域名注册查询接口"""
+    if q is None:
+        return JSONResponse(status_code=404, content={"error": '参数错误'})
+    return await router.domain(action, q)
 
 
 if __name__ == '__main__':

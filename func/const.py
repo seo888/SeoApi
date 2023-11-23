@@ -33,6 +33,10 @@ class Mir6Action(str, Enum):
     """mir6接口数据限制"""
     WEIGHT = "weight"
 
+class DomainAction(str, Enum):
+    """mir6接口数据限制"""
+    DOMAIN = "domain"
+
 class DomainsAction(str, Enum):
     """domains数据限制"""
     LOG = "log"
