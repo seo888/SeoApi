@@ -33,14 +33,15 @@ class Google():
         url = 'https://www.google.com/search'
         params = {"q": text,
                   "oq": text,
-                  "source": "hp",
-                  "sclient": "gws-wiz",
+                #   "source": "hp",
+                #   "sclient": "gws-wiz",
                   "newwindow": 1,
                   "hl": "zh-CN",
                 #   "lr": "lang_zh-CN",
                   "num": num}
         use_ip = await self.func.use_ip('google')
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)"
+        # user_agent = UserAgent().random
         headers = {
             "user-agent": user_agent,
             "referer": "https://www.google.com/",

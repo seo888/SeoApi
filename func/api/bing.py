@@ -51,19 +51,24 @@ class Bing():
         headers = {
             "user-agent": user_agent,
             "referer": f"{self.root}/search",
-            "cookie": """MUID=17C7DC52674C6A2435F4CF9866DB6B3C; MUIDB=17C7DC52674C6A2435F4CF9866DB6B3C; SRCHD=AF=NOFORM; SRCHUID=V=2&GUID=B47F03495C714DDCB9E5D6B26602C303&dmnchg=1; _UR=cdxcls=0&QS=0&TQS=0; SRCHUSR=DOB=20231115&T=1700060974000; _HPVN=CS=eyJQbiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiUCJ9LCJTYyI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiSCJ9LCJReiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiVCJ9LCJBcCI6dHJ1ZSwiTXV0ZSI6dHJ1ZSwiTGFkIjoiMjAyMy0xMS0xNVQwMDowMDowMFoiLCJJb3RkIjowLCJHd2IiOjAsIkRmdCI6bnVsbCwiTXZzIjowLCJGbHQiOjAsIkltcCI6MiwiVG9iYnMiOjB9; _Rwho=u=d; MicrosoftApplicationsTelemetryDeviceId=fa3e4ed4-dd79-4159-899a-def4927b80a9; ai_session=2pO5vAD29GrbbXasfbLZQq|1700060985093|1700060985093; ipv6=hit=1700064585114&t=6; _EDGE_S=SID=213AD3DE177B6C2D3C9AC01416D26D51&mkt=en-my; USRLOC=HS=1&ELOC=LAT=3.1514859199523926|LON=101.71142578125|N=Bandar%20Kuala%20Lumpur%EF%BC%8C%E5%90%89%E9%9A%86%E5%9D%A1|ELT=4|; _RwBf=r=0&ilt=4&ihpd=1&ispd=2&rc=6&rb=0&gb=0&rg=200&pc=3&mtu=0&rbb=0&g=0&cid=&clo=0&v=4&l=2023-11-15T08:00:00.0000000Z&lft=0001-01-01T00:00:00.0000000&aof=0&o=2&p=&c=&t=0&s=0001-01-01T00:00:00.0000000+00:00&ts=2023-11-15T15:10:02.7835801+00:00&rwred=0&wls=&wlb=&lka=0&lkt=0&aad=0&TH=; _SS=SID=213AD3DE177B6C2D3C9AC01416D26D51&R=6&RB=0&GB=0&RG=200&RP=3; SRCHHPGUSR=SRCHLANG=zh-Hans&IG=51D5854974A8423EAEFEADE20212B27D&PV=15.0.0&BRW=S&BRH=M&CW=1104&CH=838&SCW=1164&SCH=8865&DPR=1.5&UTC=480&DM=0&WTS=63835657774&HV=1700061011&PRVCW=1659&PRVCH=838&EXLTT=2&EXLKNT=1&NRSLT=50&LSL=0&AS=1&ADLT=STRICT&NNT=1&HAP=0&VSRO=1&CHTRSP=1&SRTOBRR=2"""
+            "cookie": """MUID=1577447F8A9B691E3D7557AD8B3268AB; _EDGE_V=1; MUIDB=1577447F8A9B691E3D7557AD8B3268AB; _UR=QS=0&TQS=0; _HPVN=CS=eyJQbiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiUCJ9LCJTYyI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiSCJ9LCJReiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiVCJ9LCJBcCI6dHJ1ZSwiTXV0ZSI6dHJ1ZSwiTGFkIjoiMjAyMy0xMS0yM1QwMDowMDowMFoiLCJJb3RkIjowLCJHd2IiOjAsIlRucyI6MCwiRGZ0IjpudWxsLCJNdnMiOjAsIkZsdCI6MCwiSW1wIjoxLCJUb2JicyI6MH0=; ipv6=hit=1700724335448&t=4; MicrosoftApplicationsTelemetryDeviceId=781d5c7c-3264-49c1-8282-fd3f730fbe6d; ai_session=eT5M0kXAgwBGKlFhWLMh2Q|1700720735889|1700720735889; _EDGE_S=F=1&SID=09FAA36D8110616A045AB0BF80B960C6&mkt=en-my; USRLOC=HS=1&ELOC=LAT=3.1411919593811035|LON=101.71832275390625|N=Bandar%20Kuala%20Lumpur%EF%BC%8C%E5%90%89%E9%9A%86%E5%9D%A1|ELT=4|; SRCHHPGUSR=SRCHLANG=zh-Hans&IG=598F117895BA401290C413D5F6F95E27&PV=15.0.0&BRW=HTP&BRH=T&CW=896&CH=1365&SCW=1196&SCH=7581&DPR=1.5&UTC=480&DM=0&HV=1700720799&PRVCW=2552&PRVCH=1365&EXLTT=4&EXLKNT=1&NRSLT=50&LSL=0&AS=1&ADLT=OFF&NNT=1&HAP=0&VSRO=1&CHTRSP=1&SRTOBRR=2&CIBV=1.1359.7"""
         }
         return headers
 
-    @retry(stop=stop_after_attempt(3))
+    @retry(stop=stop_after_attempt(2))
     async def search(self, querry, num,ip_trans=True):
         """搜索查询"""
         text = unquote(querry)
         url = f'{self.root}/search'
         params = {
             "q": text,
-            # "qs": "n",
-            # "pq": "fges",
+            "qs": "n",
+            "form": "QBRE",
+            "sp": "-1",
+            "lq": "0",
+            "sc": "0-0",
+            "ghsh": "0",
+            "ghacc": "0",
             "mkt": "zh-CN", 
         }
         use_ip = await self.func.use_ip('bing')
@@ -82,8 +87,7 @@ class Bing():
                     await txt_f.write(new_ips_text)
             return resp_text
         return resp.text
-
-
+        
     async def get_source(self, querry, num):
         """获取搜索结果源码"""
         try:

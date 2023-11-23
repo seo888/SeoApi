@@ -5,6 +5,7 @@ import random
 import asyncio
 import arrow
 import tldextract
+import aiofiles
 import httpx
 from func.api.tg import Telegram
 from func.api.googleSheet import GoogleSheet
