@@ -106,25 +106,26 @@ class Bing():
 
     async def get_data(self, querry, num):
         """获取搜索结果data数据"""
-        resp_text = await self.search(querry, num,ip_trans=True)
-        if resp_text=='':
-            return {"keyword": querry, 'info': f'{querry} 代理访问失败', 'success': False}
-        count_ = re.findall('约 (.*?) 个结果', resp_text)
-        count = int(count_[0].replace(',', '')) if len(count_) > 0 else None
-        tree = etree.HTML(resp_text)
-        lis = tree.xpath('//main/ol/li[@class="b_algo"]')
-        datas = []
-        for index, li in enumerate(lis):
-            title = li.xpath('.//h2')[0].xpath('string(.)').strip()
-            real_url = li.xpath('.//h2/a/@href')[0]
-            full_domain, root_domain = self.func.get_domain_info(real_url)[1:]
-            des = des_p[0].xpath('string(.)').strip() if len(des_p:=li.xpath('.//p'))>0 else ''
-            des = des[2:] if des.startswith('网页') else des
-            print(index+1, title, real_url,des)
-            datas.append({"id": index + 1, "title": title, "full_domain": full_domain, "domain": root_domain, "link": real_url,'des': des})
-        # 相关搜索 关键词
-        related = tree.xpath('//div[@id="brsv3"]/ul/li/a/div[2]/text()')
-        return {"keyword": querry, "count": count,"related": related, "data": datas, 'success': True}
+        try:
+            resp_text = await self.search(querry, num,ip_trans=True)
+            count_ = re.findall('约 (.*?) 个结果', resp_text)
+            count = int(count_[0].replace(',', '')) if len(count_) > 0 else None
+            tree = etree.HTML(resp_text)
+            lis = tree.xpath('//main/ol/li[@class="b_algo"]')
+            datas = []
+            for index, li in enumerate(lis):
+                title = li.xpath('.//h2')[0].xpath('string(.)').strip()
+                real_url = li.xpath('.//h2/a/@href')[0]
+                full_domain, root_domain = self.func.get_domain_info(real_url)[1:]
+                des = des_p[0].xpath('string(.)').strip() if len(des_p:=li.xpath('.//p'))>0 else ''
+                des = des[2:] if des.startswith('网页') else des
+                print(index+1, title, real_url,des)
+                datas.append({"id": index + 1, "title": title, "full_domain": full_domain, "domain": root_domain, "link": real_url,'des': des})
+            # 相关搜索 关键词
+            related = tree.xpath('//div[@id="brsv3"]/ul/li/a/div[2]/text()')
+            return {"keyword": querry, "count": count,"related": related, "data": datas, 'success': True}
+        except Exception as err:
+            return {"keyword": querry, 'info': f'{err}', 'success': False}
     
     async def get_include(self, querry, num):
         """获取收录详情数据"""
