@@ -7,6 +7,7 @@ import arrow
 import tldextract
 import aiofiles
 import httpx
+from fake_useragent import UserAgent
 from func.api.tg import Telegram
 from func.api.googleSheet import GoogleSheet
 
@@ -25,7 +26,8 @@ class Register():
         
     async def net_cn(self,domain):
         url = f"http://panda.www.net.cn/cgi-bin/check.cgi?area_domain={domain}"
-        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
+        # user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
+        user_agent = UserAgent().random
         headers = {"user-agent": user_agent,}
         use_ip = random.choice(self.func.ips)
         transport = httpx.AsyncHTTPTransport(local_address=use_ip)
@@ -38,7 +40,8 @@ class Register():
 
     async def sedo_com(self,domain):
         url = f"https://sedo.com/brokerage/acquisition.php?domain={domain}&origin=partner"
-        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
+        # user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
+        user_agent = UserAgent().random
         headers = {"user-agent": user_agent,}
         use_ip = random.choice(self.func.ips)
         transport = httpx.AsyncHTTPTransport(local_address=use_ip)
@@ -74,7 +77,10 @@ class Register():
         try:
             register_ok = await self.net_cn(domain)
         except:
-            register_ok = False
+            try:
+                register_ok = await self.sedo_com(domain)
+            except:
+                register_ok = False
         return register_ok
 
     def write_gsheet(self,web,datas):
