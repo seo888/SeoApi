@@ -72,9 +72,9 @@ class Register():
     async def can_register(self, domain):
         """域名可注册"""
         try: 
-            register_ok = await self.sedo_com(domain)
-        except:
             register_ok = await self.net_cn(domain)
+        except:
+            register_ok = False
         return register_ok
 
     def write_gsheet(self,web,datas):
