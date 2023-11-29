@@ -55,11 +55,10 @@ class Bing():
         headers = {
             "user-agent": user_agent,
             "referer": f"{self.root}/search",
-            "cookie": """MUID=1577447F8A9B691E3D7557AD8B3268AB; _EDGE_V=1; MUIDB=1577447F8A9B691E3D7557AD8B3268AB; _UR=QS=0&TQS=0; _HPVN=CS=eyJQbiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiUCJ9LCJTYyI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiSCJ9LCJReiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiVCJ9LCJBcCI6dHJ1ZSwiTXV0ZSI6dHJ1ZSwiTGFkIjoiMjAyMy0xMS0yM1QwMDowMDowMFoiLCJJb3RkIjowLCJHd2IiOjAsIlRucyI6MCwiRGZ0IjpudWxsLCJNdnMiOjAsIkZsdCI6MCwiSW1wIjoxLCJUb2JicyI6MH0=; ipv6=hit=1700724335448&t=4; MicrosoftApplicationsTelemetryDeviceId=781d5c7c-3264-49c1-8282-fd3f730fbe6d; ai_session=eT5M0kXAgwBGKlFhWLMh2Q|1700720735889|1700720735889; _EDGE_S=F=1&SID=09FAA36D8110616A045AB0BF80B960C6&mkt=en-my; USRLOC=HS=1&ELOC=LAT=3.1411919593811035|LON=101.71832275390625|N=Bandar%20Kuala%20Lumpur%EF%BC%8C%E5%90%89%E9%9A%86%E5%9D%A1|ELT=4|; SRCHHPGUSR=SRCHLANG=zh-Hans&IG=598F117895BA401290C413D5F6F95E27&PV=15.0.0&BRW=HTP&BRH=T&CW=896&CH=1365&SCW=1196&SCH=7581&DPR=1.5&UTC=480&DM=0&HV=1700720799&PRVCW=2552&PRVCH=1365&EXLTT=4&EXLKNT=1&NRSLT=50&LSL=0&AS=1&ADLT=OFF&NNT=1&HAP=0&VSRO=1&CHTRSP=1&SRTOBRR=2&CIBV=1.1359.7"""
+            "cookie": """MUID=0947C66833586CF631B0D5BC327B6D50; MUIDB=0947C66833586CF631B0D5BC327B6D50; _EDGE_V=1; _UR=QS=0&TQS=0; _HPVN=CS=eyJQbiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiUCJ9LCJTYyI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiSCJ9LCJReiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiVCJ9LCJBcCI6dHJ1ZSwiTXV0ZSI6dHJ1ZSwiTGFkIjoiMjAyMy0xMS0yNVQwMDowMDowMFoiLCJJb3RkIjowLCJHd2IiOjAsIlRucyI6MCwiRGZ0IjpudWxsLCJNdnMiOjAsIkZsdCI6MCwiSW1wIjoxLCJUb2JicyI6MH0=; ipv6=hit=1700885926159&t=4; MicrosoftApplicationsTelemetryDeviceId=de058797-6796-4671-aab9-41cae63f7fb2; ai_session=rk4WdNZU3USgqizHa0zWga|1700882326576|1700882326576; _EDGE_S=F=1&SID=0BC8D7E9092264E00A47C43D0801657E&mkt=en-my; USRLOC=HS=1&ELOC=LAT=3.1520235538482666|LON=101.71143341064453|N=Bandar%20Kuala%20Lumpur%EF%BC%8C%E5%90%89%E9%9A%86%E5%9D%A1|ELT=4|; SRCHHPGUSR=SRCHLANG=zh-Hans&IG=7BEC4A1D5AB84D7CB971669440609115&PV=15.0.0&BRW=XW&BRH=T&CW=1568&CH=1365&SCW=1553&SCH=3072&DPR=1.5&UTC=480&DM=0&HV=1700882608&PRVCW=1568&PRVCH=1365&EXLTT=3"""
         }
         return headers
 
-    # @retry(stop=stop_after_attempt(2))
     async def search(self, querry, num,ip_trans=True):
         """搜索查询"""
         text = unquote(querry)
@@ -78,21 +77,21 @@ class Bing():
         use_ip = await self.func.use_ip('bing')
         headers =self.get_headers(num)
         resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip,ip_trans=ip_trans)
+        print(resp.text)
         if resp=='':
             return ''
-
-        if '<h1>没有与此相关的结果' in resp.text:
-            resp_text = await self.search(querry,num,ip_trans=True)
-            if use_ip!='0.0.0.0':
-                print(f"{use_ip} bing被禁 删除")
-                path_dir = os.path.join("cache", arrow.now("Asia/Shanghai").format('YYYY-MM-DD'))
-                use_ips_path = os.path.join(path_dir, "bing_ips.txt")
-                async with aiofiles.open(use_ips_path, "r", encoding='utf-8')as txt_f:
-                    ips_text = await txt_f.read()
-                new_ips_text = ips_text.replace(use_ip+"\n",'\n')
-                async with aiofiles.open(use_ips_path, "w", encoding='utf-8')as txt_f:
-                    await txt_f.write(new_ips_text)
-            return resp_text
+        # if '<h1>没有与此相关的结果' in resp.text:
+        #     resp_text = await self.search(querry,num,ip_trans=True)
+        #     if use_ip!='0.0.0.0':
+        #         print(f"{use_ip} bing被禁 删除")
+        #         path_dir = os.path.join("cache", arrow.now("Asia/Shanghai").format('YYYY-MM-DD'))
+        #         use_ips_path = os.path.join(path_dir, "bing_ips.txt")
+        #         async with aiofiles.open(use_ips_path, "r", encoding='utf-8')as txt_f:
+        #             ips_text = await txt_f.read()
+        #         new_ips_text = ips_text.replace(use_ip+"\n",'\n')
+        #         async with aiofiles.open(use_ips_path, "w", encoding='utf-8')as txt_f:
+        #             await txt_f.write(new_ips_text)
+        #     return resp_text
         return resp.text
         
     async def get_source(self, querry, num):
