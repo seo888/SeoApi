@@ -71,7 +71,7 @@ class Register():
 
     async def can_register(self, domain):
         """域名可注册"""
-        try: 
+        try:
             register_ok = await self.net_cn(domain)
         except:
             register_ok = False
