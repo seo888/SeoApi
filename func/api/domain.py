@@ -53,7 +53,21 @@ class Register():
 
     async def idcqs(self, domain):
         """idcqs api"""
-        url = 'https://www.wildlaas.com/domain/domainStatus'
+        urls = [
+            'https://www.wildlaas.com/domain/domainStatus',
+            'http://hkidc.ltd/domain/domainStatus',
+            'https://www.hengcloud.com/domain/domainStatus',
+            'https://www.88sup.com/domain/domainStatus',
+            'https://www.hiliang.com/domain/domainStatus',
+            'https://www.aqxyun.com/domain/domainStatus',
+            'https://www.lw1994.com/domain/domainStatus',
+            'https://www.daidc.com/domain/domainStatus',
+            'https://www.chinacc.net/domain/domainStatus',
+
+        ]
+        url = random.choice(urls)
+        url_full_domain = self.func.get_domain_info(url)[1]
+        http_head = url.split(url_full_domain)[0]
         tld = tldextract.extract(domain)
         root_domain = ".".join([tld.domain, tld.suffix]).strip(".").lower()
         data = {
@@ -62,30 +76,30 @@ class Register():
         }
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62"
         headers = {"user-agent": user_agent,
-                   'Host': 'wildlaas.com',
-                   'Origin': 'https://www.wildlaas.com',
-                   'Referer': f'https://www.wildlaas.com/domain/search?key={root_domain}&suffixes%5B%5D=.{tld.suffix}'}
+                   'Host': url_full_domain,
+                   'Origin': f'{http_head}{url_full_domain}',
+                   'Referer': f'{http_head}{url_full_domain}/domain/search?key={root_domain}&suffixes%5B%5D=.{tld.suffix}'}
         use_ip = random.choice(self.func.ips)
-        # client = httpx.Client(transport=httpx.HTTPTransport(local_address=use_ip))
-        # resp = client.post(url, data=data, headers=headers)
         transport = httpx.AsyncHTTPTransport(local_address=use_ip)
         async with httpx.AsyncClient(transport=transport) as client:
             resp = await client.post(url,data=data, headers=headers,timeout=30)
-        print(resp.text)
+        print(resp.json())
         if resp.json()['text'] == '域名可注册':
             return True
         return False
 
     async def can_register(self, domain):
         """域名可注册"""
-        register_ok = await self.idcqs(domain)
-        # try:
-        #     register_ok = await self.net_cn(domain)
-        # except:
-        #     try:
-        #         register_ok = await self.sedo_com(domain)
-        #     except:
-        #         register_ok = False
+        try:
+            register_ok = await self.idcqs(domain)
+        except:
+            try:
+                register_ok = await self.idcqs(domain)
+            except:
+                try:
+                    register_ok = await self.net_cn(domain)
+                except:
+                    register_ok = False
         return register_ok
 
     def write_gsheet(self,web,datas):
