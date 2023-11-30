@@ -82,7 +82,7 @@ class Register():
         use_ip = random.choice(self.func.ips)
         transport = httpx.AsyncHTTPTransport(local_address=use_ip)
         async with httpx.AsyncClient(transport=transport) as client:
-            resp = await client.post(url,data=data, headers=headers,timeout=30)
+            resp = await client.post(url,data=data, headers=headers,timeout=45)
         print(resp.json())
         if resp.json()['text'] == '域名可注册':
             return True
@@ -93,13 +93,13 @@ class Register():
         try:
             register_ok = await self.idcqs(domain)
         except:
-            try:
-                register_ok = await self.idcqs(domain)
-            except:
-                try:
-                    register_ok = await self.net_cn(domain)
-                except:
-                    register_ok = False
+            # try:
+            #     register_ok = await self.idcqs(domain)
+            # except:
+            #     try:
+            #         register_ok = await self.net_cn(domain)
+            #     except:
+            register_ok = False
         return register_ok
 
     def write_gsheet(self,web,datas):
