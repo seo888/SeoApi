@@ -83,7 +83,7 @@ class Register():
         transport = httpx.AsyncHTTPTransport(local_address=use_ip)
         async with httpx.AsyncClient(transport=transport) as client:
             resp = await client.post(url,data=data, headers=headers,timeout=45)
-        print(resp.json())
+        # print(resp.json())
         if resp.json()['text'] == '域名可注册':
             return True
         return False

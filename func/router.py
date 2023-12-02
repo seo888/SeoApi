@@ -98,7 +98,7 @@ class Router():
     async def domain(self, action, q):
         """谷歌接口"""
         if action == DomainAction.DOMAIN:
-            result = await Register(self.func).can_register(q)
+            result = await self.register.can_register(q)
         else:
             result = False
         result_= {'domain':q,'可注册':result}
