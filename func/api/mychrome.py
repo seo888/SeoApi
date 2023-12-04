@@ -50,9 +50,9 @@ class MyChrome():
         file_name = f"{cache_dir}/{name}.txt"
         if os.path.exists(file_name):
             linecache.checkcache(file_name)
-            cookie = "".join(linecache.getlines(file_name))
+            cookie = "".join(linecache.getlines(file_name)).strip()
         else:
-            cookie = self.getBingCookie()
+            cookie = self.getBingCookie().strip()
             async with aiofiles.open(file_name,'w',encoding='utf-8')as f:
                 await f.write(cookie)
         return cookie
