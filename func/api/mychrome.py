@@ -37,7 +37,7 @@ class MyChrome():
             cookie = "".join([i['name'] + "=" + i['value'] + ";" for i in page.get_cookies()])
             print(cookie)
             #关闭浏览器
-            page.close_tabs()
+            # page.close_tabs()
             return cookie
         except Exception as e:
             print(e)
