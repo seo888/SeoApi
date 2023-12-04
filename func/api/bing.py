@@ -14,6 +14,7 @@ from tenacity import retry, stop_after_attempt
 import aiofiles
 import arrow
 from func.api.ipTrans import IpTrans
+from func.api.mychrome import MyChrome
 
 
 class Bing():
@@ -49,13 +50,15 @@ class Bing():
             print(err)
             return ''
 
-    def get_headers(self,num):
+    async def get_headers(self,num):
         """生成headers"""
         user_agent = UserAgent().random
+        ch = MyChrome()
+        cookie = await ch.getTxtCookie()
         headers = {
             "user-agent": user_agent,
             "referer": f"{self.root}/search",
-            "cookie": """MUID=0947C66833586CF631B0D5BC327B6D50; MUIDB=0947C66833586CF631B0D5BC327B6D50; _EDGE_V=1; _UR=QS=0&TQS=0; _HPVN=CS=eyJQbiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiUCJ9LCJTYyI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiSCJ9LCJReiI6eyJDbiI6MSwiU3QiOjAsIlFzIjowLCJQcm9kIjoiVCJ9LCJBcCI6dHJ1ZSwiTXV0ZSI6dHJ1ZSwiTGFkIjoiMjAyMy0xMS0yNVQwMDowMDowMFoiLCJJb3RkIjowLCJHd2IiOjAsIlRucyI6MCwiRGZ0IjpudWxsLCJNdnMiOjAsIkZsdCI6MCwiSW1wIjoxLCJUb2JicyI6MH0=; ipv6=hit=1700885926159&t=4; MicrosoftApplicationsTelemetryDeviceId=de058797-6796-4671-aab9-41cae63f7fb2; ai_session=rk4WdNZU3USgqizHa0zWga|1700882326576|1700882326576; _EDGE_S=F=1&SID=0BC8D7E9092264E00A47C43D0801657E&mkt=en-my; USRLOC=HS=1&ELOC=LAT=3.1520235538482666|LON=101.71143341064453|N=Bandar%20Kuala%20Lumpur%EF%BC%8C%E5%90%89%E9%9A%86%E5%9D%A1|ELT=4|; SRCHHPGUSR=SRCHLANG=zh-Hans&IG=7BEC4A1D5AB84D7CB971669440609115&PV=15.0.0&BRW=XW&BRH=T&CW=1568&CH=1365&SCW=1553&SCH=3072&DPR=1.5&UTC=480&DM=0&HV=1700882608&PRVCW=1568&PRVCH=1365&EXLTT=3"""
+            "cookie": cookie
         }
         return headers
 
@@ -66,18 +69,12 @@ class Bing():
         params = {
             "q": text,
             "qs": "n",
-            "form": "QBRE",
-            "sp": "-1",
-            "lq": "0",
-            "sc": "0-0",
-            "ghsh": "0",
-            "ghacc": "0",
             "mkt": "zh-CN", 
         }
         use_ip = await self.func.use_ip('bing')
-        headers =self.get_headers(num)
+        headers = await self.get_headers(num)
         resp = await self.request_get(url, headers=headers, params=params, use_ip=use_ip,ip_trans=ip_trans)
-        print(resp.text)
+        # print(resp.text)
         if resp=='':
             return ''
         # if '<h1>没有与此相关的结果' in resp.text:
@@ -163,7 +160,7 @@ class Bing():
         """获取下一页收录详情数据"""
         try:
             url = unquote(querry)
-            headers = self.get_headers(num)
+            headers = await self.get_headers(num)
             use_ip = await self.func.use_ip('bing')
             resp = await self.request_get(url, headers=headers,use_ip=use_ip)
             # with open('1.html','w',encoding='utf-8')as f:
