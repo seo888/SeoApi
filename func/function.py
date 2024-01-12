@@ -20,7 +20,6 @@ class Func():
     def __init__(self):
         self.ips = self.get_ips()
         
-
     def get_ips(self):
         """获取当前服务器所有IP"""
         nowsys = sys.platform
@@ -97,7 +96,7 @@ class Func():
     def get_lines(self, path):
         """txt文件行数据"""
         linecache.checkcache(path)
-        result = [i.strip() for i in linecache.getlines(path) if len(i.strip())>7]
+        result = [i.strip() for i in linecache.getlines(path) if len(i.strip()) > 7]
         return result
     
     def get_text(self, path):
