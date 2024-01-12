@@ -56,4 +56,3 @@ class AiAction(str, Enum):
     """AI数据限制"""
     TEXT = "text"
     DES = "des"
-

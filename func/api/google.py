@@ -85,9 +85,9 @@ class Google:
             for index, div in enumerate(divs):
                 try:
                     title = div.xpath(".//h3")[0].xpath("string(.)").strip()
-                    print(title)
+                    # print(title)
                     real_url = div.xpath("./div/span/a/@href")[0]
-                    print(real_url)
+                    # print(real_url)
                     full_domain, root_domain = self.func.get_domain_info(real_url)[1:]
                     des = (
                         div.xpath('../..//div[@data-snf="nke7rc"]')[0]
