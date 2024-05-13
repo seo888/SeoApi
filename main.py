@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 from enum import Enum
+import os
 from fastapi import Response, Request, Form, Body
 from fastapi import FastAPI
 import uvicorn
@@ -10,7 +11,6 @@ from func.function import Func
 from func import middle
 from func.router import Router
 from func.const import *
-
 
 app = FastAPI(
     title="SeoApi",
@@ -66,12 +66,48 @@ async def middleware(request: Request, call_next):
 async def telegram_send(request: Request, text=None, token=None, to_id=None):
     """给指定telegram频道或用户发送消息"""
     if text is None:
-        return Response(
-            content="【telegram】Send Message API", media_type="text/html;charset=utf-8"
-        )
+        return Response(content="【telegram】Send Message API",
+                        media_type="text/html;charset=utf-8")
     if text is not None and token is not None and id is not None:
         return await router.tg_send(text, token, to_id)
     return JSONResponse({"error": "参数不全"})
+
+
+@app.get("/scripts/{file_name}")
+async def scriptPy(request: Request,
+                   response: Response,
+                   file_name: str = None):
+    """返回脚本"""
+    file_path = os.path.join("./scripts", file_name)
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            python_code = file.read()
+        response.headers["Content-Type"] = "text/plain"
+        return Response(status_code=200, content=python_code)
+    return '没有文件'
+
+
+@app.get("/tasks")
+async def remoteTasks(request: Request,
+                      do_user: str,
+                      do_account: str,
+                      count: int = 1):
+    """获取pgsql中的任务数据"""
+    count = 5 if count > 5 else count
+    count = 1 if count < 1 else count
+    return await router.getTasks(None, count, do_user, do_account)
+
+
+@app.get("/tasks/{user}")
+async def tasks(request: Request,
+                user: str,
+                do_user: str,
+                do_account: str,
+                count: int = 1):
+    """获取pgsql中的任务数据"""
+    count = 5 if count > 5 else count
+    count = 1 if count < 1 else count
+    return await router.getTasks(user, count, do_user, do_account)
 
 
 @app.get("/domains/{mode}")
@@ -120,7 +156,7 @@ async def google(action: GoogleAction, q: str = None, num: int = 50):
 @app.get("/url")
 async def url(q: str = ""):
     """google 搜索结果url跳转"""
-    if q[: len("http")] == "http":
+    if q[:len("http")] == "http":
         return RedirectResponse(url=q, status_code=301)
     return {"q": q}
 

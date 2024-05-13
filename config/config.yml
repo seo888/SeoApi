@@ -6,6 +6,9 @@
   telegram_token: '6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJYs' # 机器人TOKEN
   telegram_group_chat_id: '-794028075' # 群组ID
 
+【数据库配置】:
+  PostgresDB: "postgresql+psycopg2://adtools:adtools@38.34.175.87:9888/adtools"
+
 【功能开关】:
   开启域名可注册查询: true
   开启发送至telegram: true
