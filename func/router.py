@@ -174,6 +174,11 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
+    async def uploadTask(self, user, data):
+        ok, info, points = self.pgdb.insertTaskData(user, data)
+        result_data = {"success": ok, "info": info, 'points': points}
+        return JSONResponse(result_data)
+
     async def getTasks(self, user, count, do_user, do_account, limit):
         """获取一个任务"""
         limit_list = limit.split(',') if limit is not None else limit

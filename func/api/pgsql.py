@@ -392,7 +392,7 @@ class PostgresDB:
                 )
                 self.session.execute(sql_text, data)
             info = f"《{table_name}》插入任务数据 成功"
-            return True, info ,points
+            return True, info, points
         except Exception as e:
             info = f"《{table_name}》插入任务数据 失败 报错：{e}"
             print(info)
@@ -400,7 +400,7 @@ class PostgresDB:
                 # print('不存在则创建')
                 self.createTaskTable(user)
                 return self.insertTaskData(user, data)
-            return False, info,0
+            return False, info, 0
 
     def insertUserData(self, data):
         """插入用户数据"""
