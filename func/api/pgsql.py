@@ -178,7 +178,8 @@ class PostgresDB:
                     f"DELETE FROM {table_name} WHERE id IN ({id_str})")
                 result_delete = self.session.execute(sql_delete)
                 row_count = result_delete.rowcount
-                scripts_json = json.loads(self.func.get_text('scripts/scripts.json'))
+                scripts_json = json.loads(
+                    self.func.get_text('scripts/scripts.json'))
                 print(task_type_counts)
                 print(scripts_json)
                 points_add = 0
@@ -188,8 +189,8 @@ class PostgresDB:
                     # 返还积分
                     data = {
                         "username": user,
-                        "freeze_points_delta": -points_add,
-                        "points_delta": points_add,
+                        "points_delta": points_add,  # +积分
+                        "freeze_points_delta": -points_add,  # -冻结积分
                     }
                     sql_text = text(
                         """UPDATE users SET freeze_points = freeze_points + :freeze_points_delta, points = points + :points_delta WHERE username = :username"""
@@ -378,10 +379,13 @@ class PostgresDB:
                     """)
                 self.session.execute(sql_query, data)
                 # 消费积分
+                scripts_json = json.loads(
+                    self.func.get_text('scripts/scripts.json'))
+                points = scripts_json[data['task_type']]['points']
                 data = {
                     "username": user,
-                    "freeze_points_delta": 10,
-                    "points_delta": -10,
+                    "points_delta": -points,  # -积分
+                    "freeze_points_delta": points,  # +冻结积分
                 }
                 sql_text = text(
                     """UPDATE users SET freeze_points = freeze_points + :freeze_points_delta, points = points + :points_delta WHERE username = :username"""
