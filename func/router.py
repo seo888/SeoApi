@@ -201,6 +201,16 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
+    async def pastTimeTask(self, user):
+        """超时任务处理"""
+        ok, result = self.pgdb.updatePastTimeTask(user)
+        print(ok, result)
+        if ok:
+            result_data = {"success": ok, "result": result}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+
     async def getLog24(self, account):
         """获取24小时内任务发送数"""
         ok, result = self.pgdb.get24LogJson(account)

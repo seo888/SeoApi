@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import time
 from sqlalchemy import create_engine, text
@@ -20,17 +20,17 @@ class PostgresDB:
         try:
             with self.session.begin():
                 self.session.execute(text(sql))
-            info = f"创建表《{table_name.lower()}》成功"
+            info = f"创建表《{table_name}》成功"
             return True, info
         except Exception as e:
-            info = f"创建表《{table_name.lower()}》失败 报错：{e}"
+            info = f"创建表《{table_name}》失败 报错：{e}"
             return False, info
 
     def createUserTable(self):
         """创建用户表"""
         table_name = "users"
         sql = f"""
-            CREATE TABLE {table_name.lower()} (
+            CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(100) NOT NULL UNIQUE,
                 pwd VARCHAR(100) NOT NULL,
@@ -46,7 +46,7 @@ class PostgresDB:
         table_name = "log_" + account.replace('@', '__').replace(
             '-', '___').replace('.', '_')
         sql = f"""
-            CREATE TABLE {table_name.lower()} (
+            CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
                 task_id VARCHAR(100) NOT NULL,
                 title VARCHAR(100) NOT NULL,
@@ -97,13 +97,13 @@ class PostgresDB:
         try:
             with self.session.begin():
                 task_log_sql = text(f"""
-                INSERT INTO {task_log_table_name.lower()} (task_id, title, task_type, start_time)
+                INSERT INTO {task_log_table_name} (task_id, title, task_type, start_time)
                 VALUES (:task_id, :title, :task_type, :start_time)
                 """)
                 self.session.execute(task_log_sql,
                                      task_log_sql_data)  # 插入任务日志数据
         except Exception as e:
-            info = f"《{task_log_table_name.lower()}》插入任务日志数据 失败 报错：{e}"
+            info = f"《{task_log_table_name}》插入任务日志数据 失败 报错：{e}"
             print(info)
             if "does not exist" in str(e):
                 self.createLogTable(account)
@@ -133,7 +133,7 @@ class PostgresDB:
         """创建任务数据表"""
         table_name = f"task_{user}"
         sql = f"""
-            CREATE TABLE {table_name.lower()} (
+            CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
                 task_name VARCHAR(100) NOT NULL,
                 title VARCHAR(100) NOT NULL,
@@ -149,6 +149,64 @@ class PostgresDB:
                 life INT NOT NULL
             )"""
         return self.createTable(table_name, sql)
+
+    # def updatePastTimeTask(self, user):
+    #     """任务表处理超时任务 更新表中所有 finish_time='' 且 start_time 距当前时间已经过去10分钟的记录"""
+    #     table_name = f"task_{user}".lower()
+    #     try:
+    #         # 计算当前时间减去10分钟的时间
+    #         past_time_threshold = datetime.now() - timedelta(minutes=10)
+    #         formatted_past_time_threshold = past_time_threshold.strftime('%Y-%m-%d %H:%M:%S')
+    #         with self.session.begin():
+    #             sql = text(f"""
+    #                 UPDATE {table_name}
+    #                 SET start_time = :start_time, do_user = :do_user, do_account = :do_account
+    #                 WHERE finish_time = ''
+    #                 AND start_time <= :formatted_past_time_threshold
+    #             """)
+    #             data = {
+    #                 'start_time': '',
+    #                 'do_user': '',
+    #                 'do_account': '',
+    #                 'formatted_past_time_threshold': formatted_past_time_threshold
+    #             }
+    #             self.session.execute(sql, data)
+    #         info = f"《{table_name}》处理超时任务 成功"
+    #         return True, info
+    #     except Exception as e:
+    #         info = f"《{table_name}》处理超时任务时出错：{e}"
+    #         return False, info
+
+    def updatePastTimeTask(self, user):
+        """任务表处理超时任务 更新表中所有 finish_time='' 且 start_time 距当前时间已经过去10分钟的记录"""
+        table_name = f"task_{user}".lower()
+        try:
+            # 计算当前时间减去10分钟的时间
+            current_time_beijing = datetime.utcnow() + timedelta(hours=8)
+            print(current_time_beijing)
+            past_time_threshold = current_time_beijing - timedelta(minutes=10)
+            ppast_time = past_time_threshold.strftime('%Y-%m-%d %H:%M:%S')
+            with self.session.begin():
+                sql = text(f"""
+                    UPDATE {table_name}
+                    SET start_time = :start_time, do_user = :do_user, do_account = :do_account
+                    WHERE finish_time = ''
+                    AND start_time <= :ppast_time
+                    AND start_time != ''
+                """)
+                data = {
+                    'start_time': '',
+                    'do_user': '',
+                    'do_account': '',
+                    'ppast_time': ppast_time
+                }
+                result = self.session.execute(sql, data)
+                row_count = result.rowcount
+            info = f"《{table_name}》处理超时任务 成功，更新了 {row_count} 条记录"
+            return True, info
+        except Exception as e:
+            info = f"《{table_name}》处理超时任务时出错：{e}"
+            return False, info
 
     def getUserTaskData(self,
                         user,
@@ -201,18 +259,18 @@ class PostgresDB:
                     print(info)
                     return False, info
             user = remote_user
-        table_name = f"task_{user}"
+        table_name = f"task_{user}".lower()
         try:
             task_log_sql_datas = []
             with self.session.begin():
                 if limit_list is None:
                     sql = text(
-                        f"SELECT * FROM {table_name.lower()} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}"
+                        f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}"
                     )
                 else:
                     limit_list_to_text = "'" + "', '".join(limit_list) + "'"
                     sql = text(
-                        f"SELECT * FROM {table_name.lower()} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}"
+                        f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}"
                     )
                 results = self.session.execute(sql).fetchall()
                 datas = []
@@ -237,7 +295,7 @@ class PostgresDB:
                         'id': result[0]
                     }
                     task_info_sql = text(
-                        f"UPDATE {table_name.lower()} SET start_time = :start_time, do_user = :do_user, do_account = :do_account WHERE id = :id"
+                        f"UPDATE {table_name} SET start_time = :start_time, do_user = :do_user, do_account = :do_account WHERE id = :id"
                     )
                     self.session.execute(task_info_sql, task_info_sql_data)
                     # 准备任务日志数据
@@ -264,33 +322,32 @@ class PostgresDB:
     def fetchData(self, table_name):
         """获取表格中所有数据"""
         with self.session.begin():
-            result = self.session.execute(
-                text(f"SELECT * FROM {table_name.lower()}"))
+            result = self.session.execute(text(f"SELECT * FROM {table_name}"))
             return result.fetchall()
 
     def updateFinishTaskData(self, user, data):
         """更新完成任务数据"""
-        table_name = f"task_{user}"
+        table_name = f"task_{user}".lower()
         try:
             with self.session.begin():
                 sql = text(
-                    f"UPDATE {table_name.lower()} SET finish_time = :finish_time, link = :link WHERE id = :id"
+                    f"UPDATE {table_name} SET finish_time = :finish_time, link = :link WHERE id = :id"
                 )
                 self.session.execute(sql, data)
-                info = f"《{table_name.lower()}》更新任务完成数据 成功"
+                info = f"《{table_name}》更新任务完成数据 成功"
                 return True, info
         except Exception as e:
-            info = f"《{table_name.lower()}更新任务完成数据 失败 报错：{e}"
+            info = f"《{table_name}更新任务完成数据 失败 报错：{e}"
             print(info)
             return False, info
 
     def insertTaskData(self, user, data):
         """插入任务数据"""
-        table_name = f"task_{user}"
+        table_name = f"task_{user}".lower()
         try:
             with self.session.begin():
                 sql_query = text(f"""
-                    INSERT INTO {table_name.lower()} (task_name, title, start_time, do_user, do_account, finish_time, 
+                    INSERT INTO {table_name} (task_name, title, start_time, do_user, do_account, finish_time, 
                     link, task_type, task_data, publish_time, is_remote, life) 
                     VALUES (:task_name, :title, :start_time, :do_user, :do_account, :finish_time, 
                     :link, :task_type, :task_data, :publish_time, :is_remote, :life) 
@@ -305,10 +362,10 @@ class PostgresDB:
                     """UPDATE users SET freeze_points = freeze_points + :freeze_points_delta, points = points + :points_delta WHERE username = :username"""
                 )
                 self.session.execute(sql_text, data)
-            info = f"《{table_name.lower()}》插入任务数据 成功"
+            info = f"《{table_name}》插入任务数据 成功"
             return True, info
         except Exception as e:
-            info = f"《{table_name.lower()}》插入任务数据 失败 报错：{e}"
+            info = f"《{table_name}》插入任务数据 失败 报错：{e}"
             print(info)
             if "does not exist" in str(e):
                 # print('不存在则创建')
@@ -322,14 +379,14 @@ class PostgresDB:
         try:
             with self.session.begin():
                 sql_query = text(f"""
-                    INSERT INTO {table_name.lower()} (username, pwd, points, freeze_points, wait_points, login_time)
+                    INSERT INTO {table_name} (username, pwd, points, freeze_points, wait_points, login_time)
                     VALUES (:username, :pwd, :points, :freeze_points, :wait_points, :login_time)
                     """)
                 self.session.execute(sql_query, data)
-            info = f"《{table_name.lower()}》插入用户'{data['username']}'数据 成功"
+            info = f"《{table_name}》插入用户'{data['username']}'数据 成功"
             return True, info
         except Exception as e:
-            info = f"《{table_name.lower()}》插入用户'{data['username']}'数据 失败 报错：{e}"
+            info = f"《{table_name}》插入用户'{data['username']}'数据 失败 报错：{e}"
             if "does not exist" in str(e):
                 # print('不存在则创建')
                 self.createUserTable()
@@ -343,7 +400,7 @@ class PostgresDB:
             with self.session.begin():
                 result = self.session.execute(
                     text(
-                        f"SELECT * FROM {table_name.lower()} WHERE username = :username"
+                        f"SELECT * FROM {table_name} WHERE username = :username"
                     ),
                     {
                         "username": username
@@ -368,7 +425,7 @@ class PostgresDB:
             with self.session.begin():
                 result = self.session.execute(
                     text(
-                        f"SELECT * FROM {table_name.lower()} WHERE username = :username AND pwd = :pwd"
+                        f"SELECT * FROM {table_name} WHERE username = :username AND pwd = :pwd"
                     ),
                     {
                         "username": user,
@@ -380,7 +437,7 @@ class PostgresDB:
                     info = "登录验证成功"
                     # 更新一下登录时间
                     sql_query = text(f"""
-                    UPDATE {table_name.lower()} SET login_time = :new_login_time 
+                    UPDATE {table_name} SET login_time = :new_login_time 
                     WHERE username = :username
                     """)
                     self.session.execute(
@@ -441,8 +498,8 @@ class PostgresDB:
         with self.session.begin():
             for table_name in tables_to_drop:
                 self.session.execute(
-                    text(f"DROP TABLE IF EXISTS {table_name.lower()}"))
-                print(f'已删除表 {table_name.lower()}')
+                    text(f"DROP TABLE IF EXISTS {table_name}"))
+                print(f'已删除表 {table_name}')
 
 
 if __name__ == "__main__":

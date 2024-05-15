@@ -118,6 +118,12 @@ async def finishTasks(request: Request, user: str, tid: str, link: str):
     return await router.finishTasks(user, tid, link)
 
 
+@app.get("/tasks_past/{user}")
+async def pastTimeTask(request: Request, user: str):
+    """超时任务处理"""
+    return await router.pastTimeTask(user)
+
+
 @app.get("/task24log/{account}")
 async def task24Log(request: Request, account: str):
     """获取24小时内任务发送数"""
