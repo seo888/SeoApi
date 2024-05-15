@@ -4,6 +4,7 @@ from enum import Enum
 import os
 from fastapi import Response, Request, Form, Body
 from fastapi import FastAPI
+from pydantic import BaseModel
 import uvicorn
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 from func.api.tg import Telegram
@@ -85,6 +86,30 @@ async def scriptPy(request: Request,
         response.headers["Content-Type"] = "text/plain"
         return Response(status_code=200, content=python_code)
     return '没有文件'
+
+
+# 定义数据模型
+class Item(BaseModel):
+    task_name: str
+    title: str
+    start_time: str
+    do_user: str
+    do_account: str
+    finish_time: str
+    link: str
+    task_type: str
+    task_data: str
+    publish_time: str
+    is_remote: bool
+    life: int
+
+
+# 定义 POST 接口
+@app.post("/tasks/{user}")
+async def uploadTask(user: str, item: Item):
+    """上传任务"""
+    print(item)
+    return {"message": "Item received", "item": item}
 
 
 @app.get("/tasks")
