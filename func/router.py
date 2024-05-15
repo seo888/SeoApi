@@ -173,10 +173,10 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
-    async def getTasks(self, user, count, do_user, do_account):
+    async def getTasks(self, user, count, do_user, do_account, limit):
         """获取一个任务"""
-        ok, result = self.pgdb.getUserTaskData(user, count, do_user,
-                                               do_account)
+        limit_list = limit.split(',') if limit is not None else limit
+        ok, result = self.pgdb.getUserTaskData(user, count, do_user, do_account, limit_list)
         print(ok, result)
         if ok:
             result_data = {"success": ok, "result": result}
@@ -193,5 +193,3 @@ class Router:
         else:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
-    
-    

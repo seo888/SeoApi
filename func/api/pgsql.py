@@ -13,7 +13,7 @@ class PostgresDB:
     def __init__(self, db_uri):
         self.engine = create_engine(db_uri, echo=True)
         self.session = scoped_session(sessionmaker(bind=self.engine))
-        self.have_remote_task_user = []
+        self.have_remote_task_user = {}
 
     def createTable(self, table_name, sql):
         """新建表"""
@@ -69,6 +69,7 @@ class PostgresDB:
             for task_type, count in results:
                 log_json[task_type] = count
             print(log_json)
+            self.deleteOldLogs(account)
             return True, log_json
         except Exception as e:
             info = f"获取24小时内任务日志时出错：{e}"
@@ -76,10 +77,13 @@ class PostgresDB:
 
     def deleteOldLogs(self, account):
         """删除超过24小时的任务日志数据"""
-        table_name = "log_" + account.replace('@', '__').replace('-', '___').replace('.', '_')
+        table_name = "log_" + account.replace('@', '__').replace(
+            '-', '___').replace('.', '_')
         try:
             with self.session.begin():
-                sql = text(f"""DELETE FROM {table_name} WHERE TO_TIMESTAMP(start_time) < NOW() - INTERVAL '24 hour'""")
+                sql = text(
+                    f"""DELETE FROM {table_name} WHERE TO_TIMESTAMP(start_time) < NOW() - INTERVAL '24 hour'"""
+                )
                 self.session.execute(sql)
             return True, "删除成功"
         except Exception as e:
@@ -146,7 +150,7 @@ class PostgresDB:
             )"""
         return self.createTable(table_name, sql)
 
-    def getUserTaskData(self, user, count, do_user, do_account):
+    def getUserTaskData(self, user, count, do_user, do_account, limit_list=None):
         """获取用户任务 （start_time为空的最小id的数据）"""
         if user is None:
             if len(self.have_remote_task_user) == 0:
@@ -156,35 +160,51 @@ class PostgresDB:
                 ]
                 with self.session.begin():
                     for task_user in task_users:
+                        user_name = task_user[5:]
                         sql = text(
-                            f"SELECT * FROM {task_user} WHERE is_remote = True ORDER BY id LIMIT 1"
+                            f"SELECT task_type, COUNT(*) FROM {task_user} WHERE is_remote = True GROUP BY task_type"
                         )
-                        querry_result = self.session.execute(sql).fetchone()
-                        if querry_result:
+                        querry_result = self.session.execute(sql).fetchall()
+                        if len(querry_result) > 0:
                             print(task_user, '存在远程任务', querry_result)
-                            self.have_remote_task_user.append(task_user[5:])
+                            have_task_dict = {}
+                            for k, v in querry_result:
+                                have_task_dict[k] = v
+                            self.have_remote_task_user[
+                                user_name] = have_task_dict
                         else:
                             print(task_user, '不存在远程任务')
             if len(self.have_remote_task_user) == 0:
                 # 更新后还是没有远程任务
-                info = "当前没有可执行远程"
+                info = "当前无可执行远程任务"
                 print(info)
                 return False, info
-
-            remote_user = random.choice(self.have_remote_task_user)
-            self.have_remote_task_user.remove(remote_user)
-            table_name = f"task_{remote_user}"
+            if limit_list is None:
+                remote_user = random.choice(
+                    list(self.have_remote_task_user.keys()))
+                have_task_dict = self.have_remote_task_user.pop(
+                    remote_user)  # 删除
+            else:
+                for remote_user, tt in self.have_remote_task_user.items():
+                    if len(set(tt.keys()) - set(limit_list)) > 0:
+                        have_task_dict = self.have_remote_task_user.pop(
+                            remote_user)  # 删除
+                        break
+                else:
+                    # 没有符合的任务
+                    info = f"当前无可执行远程任务 [排除任务：{','.join(limit_list)}]"
+                    print(info)
+                    return False, info
             user = remote_user
-        else:
-            table_name = f"task_{user}"
-
+        table_name = f"task_{user}"
         try:
             task_log_sql_datas = []
             with self.session.begin():
-                sql = text(
-                    # f"SELECT * FROM {table_name.lower()} WHERE start_time = '' ORDER BY id ASC LIMIT {count}"
-                    f"SELECT * FROM {table_name.lower()} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}"
-                )
+                if limit_list is None:
+                    sql = text(f"SELECT * FROM {table_name.lower()} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}")
+                else:
+                    limit_list_to_text = "'" + "', '".join(limit_list) + "'"
+                    sql = text(f"SELECT * FROM {table_name.lower()} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}")
                 results = self.session.execute(sql).fetchall()
                 datas = []
                 print(results)
@@ -225,7 +245,7 @@ class PostgresDB:
                     self.insertLogData(do_account, task_log_sql_data)
                 return True, datas
             else:
-                info = f"'{user}' 没有可执行任务"
+                info = f"用户'{user}' 无可执行任务 [排除任务：{','.join(limit_list)}]"
                 return False, info
         except Exception as e:
             info = f"获取用户任务时出错：{e}"
@@ -412,7 +432,7 @@ if __name__ == "__main__":
     r = db.getUserTaskData(None, 1, 'haha', 'seo888@gmx.com')
     # print(r)
 
-    r = db.get24LogJson('seo888@gmx.com')
+    # r = db.get24LogJson('seo888@gmx.com')
     # data = {
     #     "task_name":'谷歌地图 20022222',
     #     "title":'欧洲杯买球网站3',

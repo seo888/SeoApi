@@ -91,11 +91,12 @@ async def scriptPy(request: Request,
 async def remoteTasks(request: Request,
                       do_user: str,
                       do_account: str,
-                      count: int = 1):
+                      count: int = 1,
+                      limit: str = None):
     """获取pgsql中的任务数据"""
     count = 5 if count > 5 else count
     count = 1 if count < 1 else count
-    return await router.getTasks(None, count, do_user, do_account)
+    return await router.getTasks(None, count, do_user, do_account, limit)
 
 
 @app.get("/tasks/{user}")
@@ -103,11 +104,12 @@ async def tasks(request: Request,
                 user: str,
                 do_user: str,
                 do_account: str,
-                count: int = 1):
+                count: int = 1,
+                limit: str = None):
     """获取pgsql中的任务数据"""
     count = 5 if count > 5 else count
     count = 1 if count < 1 else count
-    return await router.getTasks(user, count, do_user, do_account)
+    return await router.getTasks(user, count, do_user, do_account, limit)
 
 
 @app.get("/task24log/{account}")
