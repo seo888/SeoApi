@@ -174,10 +174,24 @@ class Router:
         return JSONResponse(result_data)
 
     async def getTasks(self, user, count, do_user, do_account):
-        ok, result = self.pgdb.getUserTaskData(user, count, do_user, do_account)
+        """获取一个任务"""
+        ok, result = self.pgdb.getUserTaskData(user, count, do_user,
+                                               do_account)
         print(ok, result)
         if ok:
             result_data = {"success": ok, "result": result}
         else:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
+
+    async def getLog24(self, account):
+        """获取24小时内任务发送数"""
+        ok, result = self.pgdb.get24LogJson(account)
+        print(ok, result)
+        if ok:
+            result_data = {"success": ok, "result": result}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+    
+    

@@ -110,6 +110,12 @@ async def tasks(request: Request,
     return await router.getTasks(user, count, do_user, do_account)
 
 
+@app.get("/task24log/{account}")
+async def task24Log(request: Request, account: str):
+    """获取24小时内任务发送数"""
+    return await router.getLog24(account)
+
+
 @app.get("/domains/{mode}")
 async def domains(mode: DomainsAction, day=None):
     """展示扫描的可注册域名"""
