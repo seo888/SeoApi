@@ -76,6 +76,9 @@ class PostgresDB:
             return True, log_json
         except Exception as e:
             info = f"获取24小时内任务日志时出错：{e}"
+            if "does not exist" in str(e):
+                self.createLogTable(account)
+                return self.get24LogJson(account)
             return False, info
 
     def deleteOldLogs(self, account):
