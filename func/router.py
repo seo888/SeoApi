@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 """路由解析器"""
 
+from datetime import datetime
 import os
 import random
 import aiofiles
@@ -176,7 +177,23 @@ class Router:
     async def getTasks(self, user, count, do_user, do_account, limit):
         """获取一个任务"""
         limit_list = limit.split(',') if limit is not None else limit
-        ok, result = self.pgdb.getUserTaskData(user, count, do_user, do_account, limit_list)
+        ok, result = self.pgdb.getUserTaskData(user, count, do_user,
+                                               do_account, limit_list)
+        print(ok, result)
+        if ok:
+            result_data = {"success": ok, "result": result}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+
+    async def finishTasks(self, user, tid, link):
+        """完成了一个任务 更新"""
+        data = {
+            'finish_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'link': link,
+            'id': tid
+        }
+        ok, result = self.pgdb.updateFinishTaskData(user, data)
         print(ok, result)
         if ok:
             result_data = {"success": ok, "result": result}

@@ -112,6 +112,12 @@ async def tasks(request: Request,
     return await router.getTasks(user, count, do_user, do_account, limit)
 
 
+@app.get("/tasks_finish/{user}")
+async def finishTasks(request: Request, user: str, tid: str, link: str):
+    """完成了一个任务 更新"""
+    return await router.finishTasks(user, tid, link)
+
+
 @app.get("/task24log/{account}")
 async def task24Log(request: Request, account: str):
     """获取24小时内任务发送数"""

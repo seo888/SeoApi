@@ -150,7 +150,12 @@ class PostgresDB:
             )"""
         return self.createTable(table_name, sql)
 
-    def getUserTaskData(self, user, count, do_user, do_account, limit_list=None):
+    def getUserTaskData(self,
+                        user,
+                        count,
+                        do_user,
+                        do_account,
+                        limit_list=None):
         """获取用户任务 （start_time为空的最小id的数据）"""
         if user is None:
             if len(self.have_remote_task_user) == 0:
@@ -201,10 +206,14 @@ class PostgresDB:
             task_log_sql_datas = []
             with self.session.begin():
                 if limit_list is None:
-                    sql = text(f"SELECT * FROM {table_name.lower()} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}")
+                    sql = text(
+                        f"SELECT * FROM {table_name.lower()} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}"
+                    )
                 else:
                     limit_list_to_text = "'" + "', '".join(limit_list) + "'"
-                    sql = text(f"SELECT * FROM {table_name.lower()} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}")
+                    sql = text(
+                        f"SELECT * FROM {table_name.lower()} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}"
+                    )
                 results = self.session.execute(sql).fetchall()
                 datas = []
                 print(results)
@@ -258,6 +267,22 @@ class PostgresDB:
             result = self.session.execute(
                 text(f"SELECT * FROM {table_name.lower()}"))
             return result.fetchall()
+
+    def updateFinishTaskData(self, user, data):
+        """更新完成任务数据"""
+        table_name = f"task_{user}"
+        try:
+            with self.session.begin():
+                sql = text(
+                    f"UPDATE {table_name.lower()} SET finish_time = :finish_time, link = :link WHERE id = :id"
+                )
+                self.session.execute(sql, data)
+                info = f"《{table_name.lower()}》更新任务完成数据 成功"
+                return True, info
+        except Exception as e:
+            info = f"《{table_name.lower()}更新任务完成数据 失败 报错：{e}"
+            print(info)
+            return False, info
 
     def insertTaskData(self, user, data):
         """插入任务数据"""
@@ -429,7 +454,7 @@ if __name__ == "__main__":
     # print(info)
     # print(db.getAllTables())
     # db.dropTables(['task_win88'])
-    r = db.getUserTaskData(None, 1, 'haha', 'seo888@gmx.com')
+    # r = db.getUserTaskData(None, 1, 'haha', 'seo888@gmx.com')
     # print(r)
 
     # r = db.get24LogJson('seo888@gmx.com')
@@ -454,16 +479,15 @@ if __name__ == "__main__":
     #     datas.append(new_data)
     # print(db.insertTaskData('win88',datas))
 
-    # data = {
-    #     "username": "panda",
-    #     "pwd": "168888",
-    #     "points": 10000000,
-    #     "freeze_points": 0,
-    #     "wait_points": 0,
-    #     "login_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-    # }
-
-    # print(db.insertUserData(data))
+    data = {
+        "username": "kevin",
+        "pwd": "168888",
+        "points": 10000000,
+        "freeze_points": 0,
+        "wait_points": 0,
+        "login_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+    }
+    print(db.insertUserData(data))
 
     # r = db.fetchData('task_s88')
     # print(r)
