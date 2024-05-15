@@ -112,6 +112,12 @@ async def tasks(request: Request,
     return await router.getTasks(user, count, do_user, do_account, limit)
 
 
+@app.get("/tasks_del/{user}")
+async def delTask(request: Request, user: str, ids: str):
+    """删除任务"""
+    return await router.delTask(user, ids)
+
+
 @app.get("/tasks_finish/{user}")
 async def finishTasks(request: Request, user: str, tid: str, link: str):
     """完成了一个任务 更新"""

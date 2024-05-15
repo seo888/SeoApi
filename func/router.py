@@ -186,6 +186,16 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
+    async def delTask(self, user, ids):
+        """删除任务"""
+        ok, result = self.pgdb.deleteTasksByIds(user, ids.split(','))
+        print(ok, result)
+        if ok:
+            result_data = {"success": ok, "result": result}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+
     async def finishTasks(self, user, tid, link):
         """完成了一个任务 更新"""
         data = {

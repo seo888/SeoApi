@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
+import json
 import random
 import time
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import scoped_session, sessionmaker
+from func.function import Func
 
 
 class PostgresDB:
@@ -11,6 +13,7 @@ class PostgresDB:
     """
 
     def __init__(self, db_uri):
+        self.func = Func()
         self.engine = create_engine(db_uri, echo=True)
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.have_remote_task_user = {}
@@ -150,32 +153,53 @@ class PostgresDB:
             )"""
         return self.createTable(table_name, sql)
 
-    # def updatePastTimeTask(self, user):
-    #     """任务表处理超时任务 更新表中所有 finish_time='' 且 start_time 距当前时间已经过去10分钟的记录"""
-    #     table_name = f"task_{user}".lower()
-    #     try:
-    #         # 计算当前时间减去10分钟的时间
-    #         past_time_threshold = datetime.now() - timedelta(minutes=10)
-    #         formatted_past_time_threshold = past_time_threshold.strftime('%Y-%m-%d %H:%M:%S')
-    #         with self.session.begin():
-    #             sql = text(f"""
-    #                 UPDATE {table_name}
-    #                 SET start_time = :start_time, do_user = :do_user, do_account = :do_account
-    #                 WHERE finish_time = ''
-    #                 AND start_time <= :formatted_past_time_threshold
-    #             """)
-    #             data = {
-    #                 'start_time': '',
-    #                 'do_user': '',
-    #                 'do_account': '',
-    #                 'formatted_past_time_threshold': formatted_past_time_threshold
-    #             }
-    #             self.session.execute(sql, data)
-    #         info = f"《{table_name}》处理超时任务 成功"
-    #         return True, info
-    #     except Exception as e:
-    #         info = f"《{table_name}》处理超时任务时出错：{e}"
-    #         return False, info
+    def deleteTasksByIds(self, user, id_list):
+        """根据传入的id列表批量删除数据，并返回删除的 task_type 统计"""
+        table_name = f"task_{user}".lower()
+        try:
+            # 将 id_list 转换为字符串，使用逗号分隔，以便在 SQL 查询中使用
+            id_str = ','.join(map(str, id_list))
+            with self.session.begin():
+                # 查询将要删除的记录的 task_type 统计信息
+                sql_select = text(
+                    f"SELECT task_type, COUNT(*) as count FROM {table_name} WHERE id IN ({id_str}) GROUP BY task_type"
+                )
+                result_select = self.session.execute(sql_select)
+                task_type_counts = {}
+                for row in result_select:
+                    task_type = row[0]
+                    count = row[1]
+                    if task_type in task_type_counts:
+                        task_type_counts[task_type] += count
+                    else:
+                        task_type_counts[task_type] = count
+                # 执行删除操作
+                sql_delete = text(
+                    f"DELETE FROM {table_name} WHERE id IN ({id_str})")
+                result_delete = self.session.execute(sql_delete)
+                row_count = result_delete.rowcount
+                scripts_json = json.loads(self.func.get_text('scripts/scripts.json'))
+                print(task_type_counts)
+                print(scripts_json)
+                points_add = 0
+                for k, v in task_type_counts.items():
+                    points_add += v * scripts_json[k]['points']
+                if points_add > 0:
+                    # 返还积分
+                    data = {
+                        "username": user,
+                        "freeze_points_delta": -points_add,
+                        "points_delta": points_add,
+                    }
+                    sql_text = text(
+                        """UPDATE users SET freeze_points = freeze_points + :freeze_points_delta, points = points + :points_delta WHERE username = :username"""
+                    )
+                    self.session.execute(sql_text, data)
+            info = f"《{table_name}》批量删除任务 成功，删除了{row_count}条记录，返还积分{points_add}"
+            return True, info
+        except Exception as e:
+            info = f"《{table_name}》批量删除任务时出错：{e}"
+            return False, info
 
     def updatePastTimeTask(self, user):
         """任务表处理超时任务 更新表中所有 finish_time='' 且 start_time 距当前时间已经过去10分钟的记录"""
@@ -353,6 +377,7 @@ class PostgresDB:
                     :link, :task_type, :task_data, :publish_time, :is_remote, :life) 
                     """)
                 self.session.execute(sql_query, data)
+                # 消费积分
                 data = {
                     "username": user,
                     "freeze_points_delta": 10,

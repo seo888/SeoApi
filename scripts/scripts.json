@@ -1,0 +1,22 @@
+{
+    "Google Map 地图": {
+        "url": "http://api.seo888.cc/scripts/mapPush.py",
+        "limit": 100,
+        "points": 10
+    },
+    "Google Sites 网站": {
+        "url": "http://api.seo888.cc/scripts/googleSite.py",
+        "limit": 1000,
+        "points": 2
+    },
+    "Google Group 论坛": {
+        "url": "http://api.seo888.cc/scripts/mapPush.py",
+        "limit": 100,
+        "points": 2
+    },
+    "Google Colab 平台": {
+        "url": "http://api.seo888.cc/scripts/mapPush.py",
+        "limit": 100,
+        "points": 2
+    }
+}
