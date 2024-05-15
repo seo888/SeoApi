@@ -108,8 +108,8 @@ class Item(BaseModel):
 @app.post("/tasks/{user}")
 async def uploadTask(user: str, item: Item):
     """上传任务"""
-    print(item)
-    return await router.uploadTask(user, item)
+    print(item.dict())
+    return await router.uploadTask(user, item.dict())
 
 
 @app.get("/tasks")
