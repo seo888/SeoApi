@@ -56,5 +56,5 @@ if __name__ == "__main__":
 4. 字数应该在300字以上。
 """
 
-    result = asyncio.run(Gemini("AIzaSyCdthNZ2w3drYdUrDHCb6T38ugAHhk06s").ai(question))
+    result = asyncio.run(Gemini("AIzaSyC3HtrhsF9yPUIggpV8Ci5-mNuZDJoFqSc").ai(question))
     print(result)
