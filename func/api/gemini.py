@@ -1,8 +1,13 @@
+import os
 import google.generativeai as genai
 
 
 class Gemini:
-    def __init__(self, api_key):
+    def __init__(self, api_key, proxy=None):
+        # 设置代理（如果提供）
+        if proxy:
+            os.environ['http_proxy'] = proxy
+            os.environ['https_proxy'] = proxy
         # api_key = "AIzaSyBpX7i2MknpPGKBWocft9jri2CWkfuaTvw"
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel("gemini-pro")
@@ -55,6 +60,5 @@ if __name__ == "__main__":
 3. 创建引人入胜的故事或信息，以增加观看和分享的可能性。
 4. 字数应该在300字以上。
 """
-
-    result = asyncio.run(Gemini("AIzaSyC3HtrhsF9yPUIggpV8Ci5-mNuZDJoFqSc").ai(question))
+    result = asyncio.run(Gemini("AIzaSyC3HtrhsF9yPUIggpV8Ci5-mNuZDJoFqSc", proxy="http://seo888:66668888@107.163.198.254:10254").ai(question))
     print(result)
