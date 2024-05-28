@@ -244,5 +244,7 @@ async def ai(action: AiAction, q: str = None):
     return await router.geminiAI(action, q)
 
 
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=17888)
