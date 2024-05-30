@@ -1,5 +1,7 @@
 import linecache
 import os
+from pprint import pprint
+import httpx
 import google.generativeai as genai
 
 
@@ -14,6 +16,26 @@ class Gemini:
         try:
             response = await self.chat.send_message_async(question)
             return True, response.text
+        except Exception as e:
+            return False, str(e)
+
+
+class GeminiWeb():
+
+    def __init__(self, api_key):
+        self.url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+
+    async def ai(
+        self, question, use_ip="0.0.0.0"
+    ):
+        """异步访问 POST"""
+        try:
+            data = {"contents": [{"parts": [{"text": question}]}]}
+            transport = httpx.AsyncHTTPTransport(local_address=use_ip)
+            async with httpx.AsyncClient(http2=False, transport=transport) as client:
+                resp = await client.post(self.url, json=data, timeout=60)
+            result = resp.json()['candidates'][0]['content']['parts'][0]['text']
+            return True, result
         except Exception as e:
             return False, str(e)
 
@@ -57,14 +79,14 @@ if __name__ == "__main__":
     #     print(result)
     question = """作为一名市场营销专员或广告撰稿人，你需要为网站写一篇文章。
 请根据以下要求撰写短视频文案：
-文章主题：2024欧洲杯投注官方网站入口
+文章主题：2024欧洲杯投注网站
 要求：
 1. 确定视频的目标受众和传达的信息。
 2. 使用吸引人的语言和风格，符合品牌形象。
 3. 创建引人入胜的故事或信息，以增加观看和分享的可能性。
 4. 字数应该在300字以上。
 """
-    question = '请返回一个100000到999999中间的随机数'
+    # question = '请返回一个100000到999999中间的随机数'
     # for token_ in get_lines("config/gemini_tokens.txt"):
     #     token = token_.strip().split("|")[-1]
     #     ok, result = asyncio.run(Gemini(token).ai(question))
@@ -72,5 +94,8 @@ if __name__ == "__main__":
 
     token = "AIzaSyB0wVoq4KibKhAQNGrTgLhjDEVYn-4QMW8"
     # token = "AIzaSyD1P9azjHdq4B1v_vx8VRbsOsPoOF3ot8w"
+    # ok, result = asyncio.run(Gemini(token).ai(question))
+    # print(token, ok, result[:16])
+
     ok, result = asyncio.run(Gemini(token).ai(question))
     print(token, ok, result[:16])

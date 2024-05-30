@@ -18,6 +18,8 @@ class Func():
 
     def __init__(self):
         self.ips = self.get_ips()
+        print('ips:')
+        print(self.ips)
 
     def get_ips(self):
         """获取当前服务器所有IP"""
@@ -73,6 +75,54 @@ class Func():
                                  encoding='utf-8') as txt_f:
             await txt_f.write("1")
         return use_ip
+
+    async def geminiToken_useip(self):
+        """获取IP"""
+        name = "Gemini"
+        path_dir = os.path.join(
+            "cache",
+            arrow.now("Asia/Shanghai").format('YYYY-MM-DD'))
+        os.makedirs(path_dir, exist_ok=True)
+
+        token_ips_path = os.path.join(path_dir, f"{name}_token_ips") + ".txt"
+        use_index_path = os.path.join(path_dir, f"{name}_index") + ".txt"
+
+        if not os.path.exists(token_ips_path):
+            
+            ips = sorted(list(set(self.ips)))
+            print("ips", ips)
+            tokens = self.get_lines("config/gemini_tokens.txt")
+            token_ips = []
+            for index, token in enumerate(tokens[:len(ips)]):
+                token_ips.append(token + "|" + ips[index])
+
+            async with aiofiles.open(token_ips_path, "w",
+                                     encoding='utf-8') as txt_f:
+                await txt_f.write("\n".join(token_ips))
+
+        if not os.path.exists(use_index_path):
+            async with aiofiles.open(use_index_path, "a",
+                                     encoding='utf-8') as txt_f:
+                await txt_f.write("")
+
+        ips = self.get_lines(token_ips_path)
+        if ips == []:
+            return False, '0.0.0.0'
+        async with aiofiles.open(use_index_path, "r",
+                                 encoding='utf-8') as txt_f:
+            index_text = await txt_f.read()
+        index = len(index_text)
+        use_len = len(ips)
+        if index < use_len:
+            token_ip = ips[index]
+        else:
+            index = index % use_len
+            token_ip = ips[index]
+        print(index, token_ip)
+        async with aiofiles.open(use_index_path, "a",
+                                 encoding='utf-8') as txt_f:
+            await txt_f.write(".")
+        return True, token_ip
 
     def get_domain_info(self, domain):
         """获取域名前后缀"""
