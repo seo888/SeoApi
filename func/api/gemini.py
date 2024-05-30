@@ -65,11 +65,12 @@ if __name__ == "__main__":
 4. 字数应该在300字以上。
 """
     question = '请返回一个100000到999999中间的随机数'
-    for token_ in get_lines("config/gemini_tokens.txt"):
-        token = token_.strip().split("|")[-1]
-        ok, result = asyncio.run(Gemini(token).ai(question))
-        print(token, ok, result[:16])
+    # for token_ in get_lines("config/gemini_tokens.txt"):
+    #     token = token_.strip().split("|")[-1]
+    #     ok, result = asyncio.run(Gemini(token).ai(question))
+    #     print(token, ok, result[:16])
 
-    # token = "AIzaSyCtFvepSW8GX8euBBK1cNZoMNxfKKitbVc"
-    # ok, result = asyncio.run(Gemini(token).ai(question))
-    # print(token, ok, result[:16])
+    token = "AIzaSyB0wVoq4KibKhAQNGrTgLhjDEVYn-4QMW8"
+    # token = "AIzaSyD1P9azjHdq4B1v_vx8VRbsOsPoOF3ot8w"
+    ok, result = asyncio.run(Gemini(token).ai(question))
+    print(token, ok, result[:16])
