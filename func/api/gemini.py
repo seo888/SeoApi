@@ -34,7 +34,7 @@ class GeminiWeb():
             transport = httpx.AsyncHTTPTransport(local_address=use_ip)
             async with httpx.AsyncClient(http2=False, transport=transport) as client:
                 resp = await client.post(self.url, json=data, timeout=60)
-            result = resp.json()['candidates'][0]['content']['parts'][0]['text']
+            result = resp.json()['candidates'][0]['content']['parts'][0]['text'].strip()
             return True, result
         except Exception as e:
             return False, str(e)
