@@ -24,6 +24,7 @@ class Gemini:
 class GeminiWeb():
 
     def __init__(self, api_key):
+        self.api_key = api_key
         self.url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
 
     async def ai(self, question, use_ip="0.0.0.0"):
@@ -36,7 +37,7 @@ class GeminiWeb():
                 resp = await client.post(self.url, json=data, timeout=60)
             r_json = resp.json()
             if 'error' in r_json:
-                return False, f"{r_json['error']['code']} {r_json['error']['message']}"
+                return False, f"{r_json['error']['code']} {r_json['error']['message']} from {self.apikey} {use_ip}"
             result = resp.json(
             )['candidates'][0]['content']['parts'][0]['text'].strip()
             return True, result
