@@ -101,7 +101,7 @@ if __name__ == "__main__":
     #     print(token, ok, result[:16])
     # question = '''你是一个专业的编辑人员，熟悉谷歌的一切seo规则，请以‘网络赌博’为关键词，生成一个符合谷歌Seo标准的网站标题，要求包含核心关键词,并以此标题生成一篇文章。注意：请返回以{开头,以}结尾的标准json格式的字符串,文章内容请用三引号"""包裹,保证结果能以json.loads正确解析,{"title":"""""","article":""""""}'''
 
-    token = "AIzaSyB0wVoq4KibKhAQNGrTgLhjDEVYn-4QMW8"
+    token = "AIzaSyDW2gZbzCetBTwizx9KAJWKDtIDnVmNMqA"
     # # token = "AIzaSyD1P9azjHdq4B1v_vx8VRbsOsPoOF3ot8w"
     # # ok, result = asyncio.run(Gemini(token).ai(question))
     # # print(token, ok, result[:16])
