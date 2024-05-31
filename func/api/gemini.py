@@ -1,3 +1,4 @@
+import json
 import linecache
 import os
 from pprint import pprint
@@ -25,17 +26,19 @@ class GeminiWeb():
     def __init__(self, api_key):
         self.url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
 
-    async def ai(
-        self, question, use_ip="0.0.0.0"
-    ):
+    async def ai(self, question, use_ip="0.0.0.0"):
         """异步访问 POST"""
         try:
             data = {"contents": [{"parts": [{"text": question}]}]}
             transport = httpx.AsyncHTTPTransport(local_address=use_ip)
-            async with httpx.AsyncClient(http2=False, transport=transport) as client:
+            async with httpx.AsyncClient(http2=False,
+                                         transport=transport) as client:
                 resp = await client.post(self.url, json=data, timeout=60)
-            print(resp.json())
-            result = resp.json()['candidates'][0]['content']['parts'][0]['text'].strip()
+            r_json = resp.json()
+            if 'error' in r_json:
+                return False, f"{r_json['error']['code']} {r_json['error']['message']}"
+            result = resp.json(
+            )['candidates'][0]['content']['parts'][0]['text'].strip()
             return True, result
         except Exception as e:
             return False, str(e)
@@ -78,25 +81,42 @@ if __name__ == "__main__":
     # """
     #     result = asyncio.run(Gemini("AIzaSyCSgenavbx2P8lAPOWapAcnu0Fy2tg7Vm4").ai(question))
     #     print(result)
-    question = """作为一名市场营销专员或广告撰稿人，你需要为网站写一篇文章。
-请根据以下要求撰写短视频文案：
-文章主题：2024欧洲杯投注网站
+    question = """作为一名专业的编辑人员，熟悉谷歌的一切seo规则，请根据以下要求撰写一篇软文：
+核心关键词: "2024欧洲杯买球"
+广告词: "开户入口: sogou7.com"
 要求：
-1. 确定视频的目标受众和传达的信息。
-2. 使用吸引人的语言和风格，符合品牌形象。
-3. 创建引人入胜的故事或信息，以增加观看和分享的可能性。
-4. 字数应该在300字以上。
-"""
-    question = '请返回一个100000到999999中间的随机数'
-    for token_ in get_lines("config/gemini_tokens.txt"):
-        token = token_.strip().split("|")[-1]
-        ok, result = asyncio.run(Gemini(token).ai(question))
-        print(token, ok, result[:16])
+1. 文章需出现至少2次核心关键词。
+2. 根据文章语境,合理插入广告词到文章中。
+3. 文章中不可出现任何其它网站域名和网址。
+4. 文章是高质量且不少于500字。
 
-    # token = "AIzaSyB0wVoq4KibKhAQNGrTgLhjDEVYn-4QMW8"
+返回标准json格式:
+{"title":"","article":""}
+"""
+    # question = '请返回一个100000到999999中间的随机数'
+    # for token_ in get_lines("config/gemini_tokens.txt"):
+    #     token = token_.strip().split("|")[-1]
+    #     ok, result = asyncio.run(Gemini(token).ai(question))
+    #     print(token, ok, result[:16])
+    # question = '''你是一个专业的编辑人员，熟悉谷歌的一切seo规则，请以‘网络赌博’为关键词，生成一个符合谷歌Seo标准的网站标题，要求包含核心关键词,并以此标题生成一篇文章。注意：请返回以{开头,以}结尾的标准json格式的字符串,文章内容请用三引号"""包裹,保证结果能以json.loads正确解析,{"title":"""""","article":""""""}'''
+
+    token = "AIzaSyB0wVoq4KibKhAQNGrTgLhjDEVYn-4QMW8"
     # # token = "AIzaSyD1P9azjHdq4B1v_vx8VRbsOsPoOF3ot8w"
     # # ok, result = asyncio.run(Gemini(token).ai(question))
     # # print(token, ok, result[:16])
 
-    # ok, result = asyncio.run(Gemini(token).ai(question))
-    # print(token, ok, result[:16])
+    ok, result = asyncio.run(Gemini(token).ai(question))
+    # print(token, ok, result)
+    result = "\n".join([i.strip() for i in result.split('\n')])
+    r = result.replace('\n"', '"').replace('"\n', '"').replace('\n', '\\n')
+    print(r)
+    # print(eval(r))
+    # 解析JSON字符串
+    try:
+        data = json.loads(r)
+        print(data)
+        # print(json.dumps(data, indent=4))
+    except json.JSONDecodeError as e:
+        print(f"JSONDecodeError: {e}")
+    # print(r['title'])
+    # print(r['acticle'])
