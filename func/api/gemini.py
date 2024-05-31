@@ -37,7 +37,7 @@ class GeminiWeb():
                 resp = await client.post(self.url, json=data, timeout=60)
             r_json = resp.json()
             if 'error' in r_json:
-                return False, f"{r_json['error']['code']} {r_json['error']['message']} from {self.apikey} {use_ip}"
+                return False, f"{r_json['error']['code']} {r_json['error']['message']} from {self.api_key} {use_ip}"
             result = resp.json(
             )['candidates'][0]['content']['parts'][0]['text'].strip()
             return True, result
