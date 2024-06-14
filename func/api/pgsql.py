@@ -290,87 +290,78 @@ class PostgresDB:
                     return False, info
             user = remote_user
         table_name = f"task_{user}".lower()
-        # try:
-        task_log_sql_datas = []
-
-        # # 将数组转换为 PostgreSQL 数组格式的字符串
-        # order_list_str = "{" + ",".join(f"'{item}'" for item in order_list) + "}"
-
-        # # 创建带有自定义排序逻辑的查询
-        # query = f"""
-        #     SELECT * FROM task_alen WHERE start_time = '' ORDER BY array_position(array{order_list_str}, task_type) LIMIT 1
-        # """
-
-        with self.session.begin():
-            if limit_list is None:
-                if sort_list is None:
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}")
+        try:
+            task_log_sql_datas = []
+            with self.session.begin():
+                if limit_list is None:
+                    if sort_list is None:
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}")
+                    else:
+                        # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
+                        # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
+                        # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
+                        sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
                 else:
-                    # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
-                    # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
-                    # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
-                    sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
+                    limit_list_to_text = "'" + "', '".join(limit_list) + "'"
+                    if sort_list is None:
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}")
+                    else:
+                        # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
+                        # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
+                        # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
+                        sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
+                results = self.session.execute(sql).fetchall()
+                datas = []
+                # print(results)
+                for result in results:
+                    task_data = {
+                        'user': user,
+                        'id': result[0],
+                        'type': result[8],
+                        'data': result[9]
+                    }
+                    print(
+                        f"{do_user} 获取用户{user}的id:{task_data['id']} {task_data['type']} 任务"
+                    )
+                    datas.append(task_data)
+                    # 更新任务信息
+                    task_info_sql_data = {
+                        'start_time':
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'do_user': do_user,
+                        'do_account': do_account,
+                        'id': result[0]
+                    }
+                    task_info_sql = text(
+                        f"UPDATE {table_name} SET start_time = :start_time, do_user = :do_user, do_account = :do_account WHERE id = :id"
+                    )
+                    self.session.execute(task_info_sql, task_info_sql_data)
+                    # 准备任务日志数据
+                    task_log_sql_data = {
+                        "task_id": f"{user}-{result[0]}",
+                        "title": result[2],
+                        "task_type": result[8],
+                        "start_time": int(time.time()),
+                    }
+                    task_log_sql_datas.append(task_log_sql_data)
+            if len(datas) > 0:
+                # 添加任务日志
+                for task_log_sql_data in task_log_sql_datas:
+                    self.insertLogData(do_account, task_log_sql_data)
+                return True, datas
             else:
-                limit_list_to_text = "'" + "', '".join(limit_list) + "'"
-                if sort_list is None:
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}")
+                if limit_list is None:
+                    info = f"用户'{user}' 无可执行任务"
                 else:
-                    # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
-                    # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
-                    # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
-                    sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
-            results = self.session.execute(sql).fetchall()
-            datas = []
-            # print(results)
-            for result in results:
-                task_data = {
-                    'user': user,
-                    'id': result[0],
-                    'type': result[8],
-                    'data': result[9]
-                }
-                print(
-                    f"{do_user} 获取用户{user}的id:{task_data['id']} {task_data['type']} 任务"
-                )
-                datas.append(task_data)
-                # 更新任务信息
-                task_info_sql_data = {
-                    'start_time':
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'do_user': do_user,
-                    'do_account': do_account,
-                    'id': result[0]
-                }
-                task_info_sql = text(
-                    f"UPDATE {table_name} SET start_time = :start_time, do_user = :do_user, do_account = :do_account WHERE id = :id"
-                )
-                self.session.execute(task_info_sql, task_info_sql_data)
-                # 准备任务日志数据
-                task_log_sql_data = {
-                    "task_id": f"{user}-{result[0]}",
-                    "title": result[2],
-                    "task_type": result[8],
-                    "start_time": int(time.time()),
-                }
-                task_log_sql_datas.append(task_log_sql_data)
-        if len(datas) > 0:
-            # 添加任务日志
-            for task_log_sql_data in task_log_sql_datas:
-                self.insertLogData(do_account, task_log_sql_data)
-            return True, datas
-        else:
-            if limit_list is None:
-                info = f"用户'{user}' 无可执行任务"
-            else:
-                limit_list_text = ','.join(limit_list)
-                info = f"用户'{user}' 无可执行任务 [排除：{limit_list_text}]"
+                    limit_list_text = ','.join(limit_list)
+                    info = f"用户'{user}' 无可执行任务 [排除：{limit_list_text}]"
+                return False, info
+        except Exception as e:
+            info = f"获取用户任务时出错：{e}"
+            print(info)
             return False, info
-        # except Exception as e:
-        #     info = f"获取用户任务时出错：{e}"
-        #     print(info)
-        #     return False, info
 
     def fetchData(self, table_name):
         """获取表格中所有数据"""
