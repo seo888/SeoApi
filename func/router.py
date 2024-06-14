@@ -199,11 +199,11 @@ class Router:
         result_data = {"success": ok, "info": info, 'points': points}
         return JSONResponse(result_data)
 
-    async def getTasks(self, user, count, do_user, do_account, limit):
+    async def getTasks(self, user, count, do_user, do_account, limit, sortt):
         """获取一个任务"""
         limit_list = limit.split(',') if limit is not None else limit
-        ok, result = self.pgdb.getUserTaskData(user, count, do_user,
-                                               do_account, limit_list)
+        sort_list = sortt.split(',') if sortt is not None else sortt
+        ok, result = self.pgdb.getUserTaskData(user, count, do_user, do_account, limit_list, sort_list)
         print(ok, result)
         if ok:
             result_data = {"success": ok, "result": result}

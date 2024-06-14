@@ -241,7 +241,8 @@ class PostgresDB:
                         count,
                         do_user,
                         do_account,
-                        limit_list=None):
+                        limit_list=None,
+                        sort_list=None):
         """获取用户任务 （start_time为空的最小id的数据）"""
         if user is None:
             if len(self.have_remote_task_user) == 0:
@@ -292,14 +293,18 @@ class PostgresDB:
             task_log_sql_datas = []
             with self.session.begin():
                 if limit_list is None:
-                    sql = text(
-                        f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}"
-                    )
+                    if sort_list is None:
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}")
+                    else:
+                        sort_list_to_text = "'" + "', '".join(sort_list) + "'"
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
                 else:
                     limit_list_to_text = "'" + "', '".join(limit_list) + "'"
-                    sql = text(
-                        f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}"
-                    )
+                    if sort_list is None:
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}")
+                    else:
+                        sort_list_to_text = "'" + "', '".join(sort_list) + "'"
+                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
                 results = self.session.execute(sql).fetchall()
                 datas = []
                 print(results)
