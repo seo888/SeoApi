@@ -285,7 +285,7 @@ class PostgresDB:
                 else:
                     limit_list_text = ','.join(limit_list)
                     # 没有符合的任务
-                    info = f"当前无可执行远程任务 [排除：{limit_list_text}]"
+                    info = f"当前无可执行远程任务 (排除：{limit_list_text})"
                     print(info)
                     return False, info
             user = remote_user
@@ -353,13 +353,13 @@ class PostgresDB:
                 return True, datas
             else:
                 if limit_list is None:
-                    info = f"用户'{user}' 无可执行任务"
+                    info = f"[{user}]无可执行任务"
                 else:
                     limit_list_text = ','.join(limit_list)
-                    info = f"用户'{user}' 无可执行任务 [排除：{limit_list_text}]"
+                    info = f"[{user}]无可执行任务 (排除：{limit_list_text})"
                 return False, info
         except Exception as e:
-            info = f"获取用户任务时出错：{e}"
+            info = f"[{user}]获取用户任务时出错：{e}"
             print(info)
             return False, info
 
