@@ -310,7 +310,7 @@ class PostgresDB:
                     # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
                     # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
                     sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY array_position(array{sort_list_to_text}, task_type) LIMIT {count}")
+                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
             else:
                 limit_list_to_text = "'" + "', '".join(limit_list) + "'"
                 if sort_list is None:
@@ -320,7 +320,7 @@ class PostgresDB:
                     # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
                     # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
                     sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY array_position(array{sort_list_to_text}, task_type) LIMIT {count}")
+                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
             results = self.session.execute(sql).fetchall()
             datas = []
             # print(results)
