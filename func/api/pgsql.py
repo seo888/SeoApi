@@ -283,8 +283,9 @@ class PostgresDB:
                             remote_user)  # 删除
                         break
                 else:
+                    limit_list_text = ','.join(limit_list)
                     # 没有符合的任务
-                    info = f"当前无可执行远程任务 [排除任务：{','.join(limit_list)}]"
+                    info = f"当前无可执行远程任务 [排除任务：{limit_list_text}]"
                     print(info)
                     return False, info
             user = remote_user
@@ -345,7 +346,8 @@ class PostgresDB:
                 self.insertLogData(do_account, task_log_sql_data)
             return True, datas
         else:
-            info = f"用户'{user}' 无可执行任务 [排除任务：{','.join(limit_list)}]"
+            limit_list_text = ','.join(limit_list)
+            info = f"用户'{user}' 无可执行任务 [排除任务：{limit_list_text}]"
             return False, info
         # except Exception as e:
         #     info = f"获取用户任务时出错：{e}"
