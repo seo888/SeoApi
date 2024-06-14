@@ -292,20 +292,33 @@ class PostgresDB:
         table_name = f"task_{user}".lower()
         # try:
         task_log_sql_datas = []
+
+        # # 将数组转换为 PostgreSQL 数组格式的字符串
+        # order_list_str = "{" + ",".join(f"'{item}'" for item in order_list) + "}"
+
+        # # 创建带有自定义排序逻辑的查询
+        # query = f"""
+        #     SELECT * FROM task_alen WHERE start_time = '' ORDER BY array_position(array{order_list_str}, task_type) LIMIT 1
+        # """
+
         with self.session.begin():
             if limit_list is None:
                 if sort_list is None:
                     sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}")
                 else:
-                    sort_list_to_text = "'" + "', '".join(sort_list) + "'"
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
+                    # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
+                    # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
+                    sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
+                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY array_position(array{sort_list_to_text}, task_type) LIMIT {count}")
             else:
                 limit_list_to_text = "'" + "', '".join(limit_list) + "'"
                 if sort_list is None:
                     sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}")
                 else:
-                    sort_list_to_text = "'" + "', '".join(sort_list) + "'"
-                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
+                    # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
+                    # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
+                    sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
+                    sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY array_position(array{sort_list_to_text}, task_type) LIMIT {count}")
             results = self.session.execute(sql).fetchall()
             datas = []
             # print(results)
