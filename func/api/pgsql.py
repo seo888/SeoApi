@@ -346,6 +346,7 @@ class PostgresDB:
                 self.insertLogData(do_account, task_log_sql_data)
             return True, datas
         else:
+            print('limit_list:', limit_list)
             limit_list_text = ','.join(limit_list)
             info = f"用户'{user}' 无可执行任务 [排除任务：{limit_list_text}]"
             return False, info
