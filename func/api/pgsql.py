@@ -135,6 +135,24 @@ class PostgresDB:
             info = f"更新用户积分时出错：{e}"
             return False, info
 
+    def isExistsTable(self, user):
+        """判断是否存在表格"""
+        table_name = f"task_{user}"
+        try:
+            with self.session.begin():
+                sql = text(
+                    f"""SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{table_name}');"""
+                )
+                result = self.session.execute(sql)
+            # 根据查询结果返回 True 或 False
+            if result:
+                return True, result[0][0]  # PostgreSQL 的 EXISTS 返回一个布尔值
+            return False, "判断是否存在表格时出错"
+        except Exception as e:
+            info = f"判断是否存在表格时出错：{e}"
+            print(info)
+            return False, info
+
     def createTaskTable(self, user):
         """创建任务数据表"""
         table_name = f"task_{user}"
@@ -295,23 +313,33 @@ class PostgresDB:
             with self.session.begin():
                 if limit_list is None:
                     if sort_list is None:
-                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}")
+                        sql = text(
+                            f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}"
+                        )
                     else:
                         # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
                         # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
                         # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
-                        sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
-                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
+                        sort_list_to_text = "ARRAY[" + ",".join(
+                            f"'{item}'" for item in sort_list) + "]"
+                        sql = text(
+                            f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}"
+                        )
                 else:
                     limit_list_to_text = "'" + "', '".join(limit_list) + "'"
                     if sort_list is None:
-                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}")
+                        sql = text(
+                            f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}"
+                        )
                     else:
                         # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
                         # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
                         # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
-                        sort_list_to_text = "ARRAY[" + ",".join(f"'{item}'" for item in sort_list) + "]"
-                        sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}")
+                        sort_list_to_text = "ARRAY[" + ",".join(
+                            f"'{item}'" for item in sort_list) + "]"
+                        sql = text(
+                            f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY array_position({sort_list_to_text}, task_type) LIMIT {count}"
+                        )
                 results = self.session.execute(sql).fetchall()
                 datas = []
                 # print(results)

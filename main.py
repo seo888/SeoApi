@@ -111,7 +111,6 @@ async def uploadTask(user: str, item: Item):
     print(item.dict())
     return await router.uploadTask(user, item.dict())
 
-
 @app.get("/tasks")
 async def remoteTasks(request: Request,
                       do_user: str,
@@ -123,6 +122,12 @@ async def remoteTasks(request: Request,
     count = 5 if count > 5 else count
     count = 1 if count < 1 else count
     return await router.getTasks(None, count, do_user, do_account, limit, sortt)
+
+
+@app.get("/tasks_create_table/{user}")
+async def createTasksTable(request: Request,user: str):
+    """新建一个用户任务表格"""
+    return await router.createTasksTable(user)
 
 
 @app.get("/tasks/{user}")

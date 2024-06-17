@@ -194,6 +194,20 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
+    async def createTasksTable(self, user):
+        """新建一个用户任务表格"""
+        # 判断是否存在表
+        ok, is_exists = self.pgdb.isExistsTable(user)
+        if ok:
+            if is_exists:
+                result_data = {"success": False, "result": '已存在表格'}
+            else:
+                self.pgdb.createTaskTable(user)
+                result_data = {"success": True}
+        else:
+            result_data = {"success": ok, "error_info": is_exists}
+        return JSONResponse(result_data)
+
     async def uploadTask(self, user, data):
         ok, info, points = self.pgdb.insertTaskData(user, data)
         result_data = {"success": ok, "info": info, 'points': points}
@@ -203,7 +217,9 @@ class Router:
         """获取一个任务"""
         limit_list = limit.split(',') if limit is not None else limit
         sort_list = sortt.split(',') if sortt is not None else sortt
-        ok, result = self.pgdb.getUserTaskData(user, count, do_user, do_account, limit_list, sort_list)
+        ok, result = self.pgdb.getUserTaskData(user, count, do_user,
+                                               do_account, limit_list,
+                                               sort_list)
         print(ok, result)
         if ok:
             result_data = {"success": ok, "result": result}
