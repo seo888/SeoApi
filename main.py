@@ -104,9 +104,6 @@ class Item(BaseModel):
     life: int
 
 
-
-
-
 # 定义 POST 接口
 @app.post("/tasks/{user}")
 async def uploadTask(user: str, item: Item):
@@ -128,6 +125,7 @@ async def remoteTasks(request: Request,
     return await router.getTasks(None, count, do_user, do_account, limit,
                                  sortt)
 
+
 @app.get("/tasks_user_data/{user}")
 async def getUserDataByUsername(request: Request, user: str):
     """获取用户积分及登录信息"""
@@ -138,6 +136,8 @@ async def getUserDataByUsername(request: Request, user: str):
 class UserPwdItem(BaseModel):
     username: str
     password: str
+
+
 @app.post("/tasks_verify")
 async def verifyUserPwd(request: Request, item: UserPwdItem):
     """验证账号密码"""

@@ -17,13 +17,6 @@ class PostgresDB:
         self.engine = create_engine(db_uri, echo=True)
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.have_remote_task_user = {}
-        self.task_table_head = 'task'
-
-    def getTaskTableName(self, user):
-        return f"{self.task_table_head}_{user}".lower()
-
-    def getLogTableName(self, account):
-        return f"log_{account.replace('@', '__').replace('-', '___').replace('.', '_')}".lower()
 
     def createTable(self, table_name, sql):
         """新建表"""
@@ -53,7 +46,8 @@ class PostgresDB:
 
     def createLogTable(self, account):
         """创建任务日志表"""
-        table_name = self.getLogTableName(account)
+        table_name = "log_" + account.replace('@', '__').replace(
+            '-', '___').replace('.', '_')
         sql = f"""
             CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
@@ -66,7 +60,8 @@ class PostgresDB:
 
     def get24LogJson(self, account):
         """获取24小时内任务发送数 获取24小时内不同 task_type 的数据数量"""
-        table_name = self.getLogTableName(account)
+        table_name = "log_" + account.replace('@', '__').replace(
+            '-', '___').replace('.', '_')
         try:
             with self.session.begin():
                 sql = text(
@@ -88,7 +83,8 @@ class PostgresDB:
 
     def deleteOldLogs(self, account):
         """删除超过24小时的任务日志数据"""
-        table_name = self.getLogTableName(account)
+        table_name = "log_" + account.replace('@', '__').replace(
+            '-', '___').replace('.', '_')
         try:
             with self.session.begin():
                 sql = text(
@@ -102,17 +98,18 @@ class PostgresDB:
 
     def insertLogData(self, account, task_log_sql_data):
         """添加任务日志"""
-        table_name = self.getLogTableName(account)
+        task_log_table_name = "log_" + account.replace('@', '__').replace(
+            '-', '___').replace('.', '_')
         try:
             with self.session.begin():
                 task_log_sql = text(f"""
-                INSERT INTO {table_name} (task_id, title, task_type, start_time)
+                INSERT INTO {task_log_table_name} (task_id, title, task_type, start_time)
                 VALUES (:task_id, :title, :task_type, :start_time)
                 """)
                 self.session.execute(task_log_sql,
                                      task_log_sql_data)  # 插入任务日志数据
         except Exception as e:
-            info = f"《{table_name}》插入任务日志数据 失败 报错：{e}"
+            info = f"《{task_log_table_name}》插入任务日志数据 失败 报错：{e}"
             print(info)
             if "does not exist" in str(e):
                 self.createLogTable(account)
@@ -140,7 +137,7 @@ class PostgresDB:
 
     def isExistsTable(self, user):
         """判断是否存在表格"""
-        table_name = self.getTaskTableName(user)
+        table_name = f"task_{user}"
         try:
             with self.session.begin():
                 sql = text(
@@ -156,7 +153,7 @@ class PostgresDB:
 
     def createTaskTable(self, user):
         """创建任务数据表"""
-        table_name = self.getTaskTableName(user)
+        table_name = f"task_{user}"
         sql = f"""
             CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
@@ -174,11 +171,27 @@ class PostgresDB:
                 is_remote BOOLEAN NOT NULL,
                 life INT NOT NULL
             )"""
+        # sql = f"""
+        #     CREATE TABLE {table_name} (
+        #         id SERIAL PRIMARY KEY,
+        #         task_name VARCHAR(100) NOT NULL,
+        #         title VARCHAR(100) NOT NULL,
+        #         start_time VARCHAR(100),
+        #         do_user VARCHAR(100),
+        #         do_account VARCHAR(100),
+        #         finish_time VARCHAR(100),
+        #         link VARCHAR(150) NOT NULL,
+        #         task_type VARCHAR(100) NOT NULL,
+        #         task_data TEXT NOT NULL,
+        #         publish_time VARCHAR(100) NOT NULL,
+        #         is_remote BOOLEAN NOT NULL,
+        #         life INT NOT NULL
+        #     )"""
         return self.createTable(table_name, sql)
 
     def deleteTasksByIds(self, user, id_list):
         """根据传入的id列表批量删除数据，并返回删除的 task_type 统计"""
-        table_name = self.getTaskTableName(user)
+        table_name = f"task_{user}".lower()
         try:
             # 将 id_list 转换为字符串，使用逗号分隔，以便在 SQL 查询中使用
             id_str = ','.join(map(str, id_list))
@@ -227,7 +240,7 @@ class PostgresDB:
 
     def updatePastTimeTask(self, user):
         """任务表处理超时任务 更新表中所有 finish_time='' 且 start_time 距当前时间已经过去10分钟的记录"""
-        table_name = self.getTaskTableName(user)
+        table_name = f"task_{user}".lower()
         try:
             # 计算当前时间减去10分钟的时间
             current_time_beijing = datetime.utcnow() + timedelta(hours=8)
@@ -267,25 +280,25 @@ class PostgresDB:
         if user is None:
             if len(self.have_remote_task_user) == 0:
                 # 更新一下远程任务用户库
-                table_names = [
-                    i for i in self.getAllTables() if i.startswith(f'{self.task_table_head}_')
+                task_users = [
+                    i for i in self.getAllTables() if i.startswith('task_')
                 ]
                 with self.session.begin():
-                    for table_name in table_names:
-                        user_name = table_name[5:]
+                    for task_user in task_users:
+                        user_name = task_user[5:]
                         sql = text(
-                            f"SELECT task_type, COUNT(*) FROM {table_name} WHERE is_remote = True GROUP BY task_type"
+                            f"SELECT task_type, COUNT(*) FROM {task_user} WHERE is_remote = True GROUP BY task_type"
                         )
                         querry_result = self.session.execute(sql).fetchall()
                         if len(querry_result) > 0:
-                            print(table_name, '存在远程任务', querry_result)
+                            print(task_user, '存在远程任务', querry_result)
                             have_task_dict = {}
                             for k, v in querry_result:
                                 have_task_dict[k] = v
                             self.have_remote_task_user[
                                 user_name] = have_task_dict
                         else:
-                            print(table_name, '不存在远程任务')
+                            print(task_user, '不存在远程任务')
             if len(self.have_remote_task_user) == 0:
                 # 更新后还是没有远程任务
                 info = "当前无可执行远程任务"
@@ -309,7 +322,7 @@ class PostgresDB:
                     print(info)
                     return False, info
             user = remote_user
-        table_name = self.getTaskTableName(user)
+        table_name = f"task_{user}".lower()
         try:
             task_log_sql_datas = []
             with self.session.begin():
@@ -344,6 +357,7 @@ class PostgresDB:
                         )
                 results = self.session.execute(sql).fetchall()
                 datas = []
+                # print(results)
                 for result in results:
                     task_data = {
                         'user': user,
@@ -400,7 +414,7 @@ class PostgresDB:
 
     def updateFinishTaskData(self, user, data):
         """更新完成任务数据"""
-        table_name = self.getTaskTableName(user)
+        table_name = f"task_{user}".lower()
         try:
             with self.session.begin():
                 sql = text(
@@ -416,7 +430,7 @@ class PostgresDB:
 
     def insertTaskData(self, user, data):
         """插入任务数据"""
-        table_name = self.getTaskTableName(user)
+        table_name = f"task_{user}".lower()
         try:
             with self.session.begin():
                 sql_query = text(f"""
@@ -534,6 +548,21 @@ class PostgresDB:
             info = f"登录验证失败 报错：{e}"
             return False, info
 
+    def Scripts_insert_or_update_data(self, data):
+        session = self.session()
+        try:
+            sql_query = text(
+                "INSERT INTO Scripts (NAME, URL, COUNT_LIMIT) VALUES (:name, :url, :count_limit) ON CONFLICT (NAME) DO UPDATE SET URL = EXCLUDED.URL, COUNT_LIMIT = EXCLUDED.COUNT_LIMIT"
+            )
+            session.execute(sql_query, data)
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+    # Additional methods would be similarly updated...
     def getAllTables(self):
         """获取数据库中所有表名"""
         with self.session.begin():
