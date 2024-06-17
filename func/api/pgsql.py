@@ -143,11 +143,9 @@ class PostgresDB:
                 sql = text(
                     f"""SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{table_name}');"""
                 )
-                result = self.session.execute(sql)
+                result = self.session.execute(sql).fetchall()[0][0]
             # 根据查询结果返回 True 或 False
-            if result:
-                return True, result[0][0]  # PostgreSQL 的 EXISTS 返回一个布尔值
-            return False, "判断是否存在表格时出错"
+            return True, result  # PostgreSQL 的 EXISTS 返回一个布尔值
         except Exception as e:
             info = f"判断是否存在表格时出错：{e}"
             print(info)
@@ -159,19 +157,36 @@ class PostgresDB:
         sql = f"""
             CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
-                task_name VARCHAR(100) NOT NULL,
+                task_type VARCHAR(100) NOT NULL,
+                keyword VARCHAR(100) NOT NULL,
                 title VARCHAR(100) NOT NULL,
+                link VARCHAR(150) NOT NULL,
+                finish_time VARCHAR(100),
                 start_time VARCHAR(100),
                 do_user VARCHAR(100),
                 do_account VARCHAR(100),
-                finish_time VARCHAR(100),
-                link VARCHAR(150) NOT NULL,
-                task_type VARCHAR(100) NOT NULL,
+                task_name VARCHAR(100) NOT NULL,
                 task_data TEXT NOT NULL,
                 publish_time VARCHAR(100) NOT NULL,
                 is_remote BOOLEAN NOT NULL,
                 life INT NOT NULL
             )"""
+        # sql = f"""
+        #     CREATE TABLE {table_name} (
+        #         id SERIAL PRIMARY KEY,
+        #         task_name VARCHAR(100) NOT NULL,
+        #         title VARCHAR(100) NOT NULL,
+        #         start_time VARCHAR(100),
+        #         do_user VARCHAR(100),
+        #         do_account VARCHAR(100),
+        #         finish_time VARCHAR(100),
+        #         link VARCHAR(150) NOT NULL,
+        #         task_type VARCHAR(100) NOT NULL,
+        #         task_data TEXT NOT NULL,
+        #         publish_time VARCHAR(100) NOT NULL,
+        #         is_remote BOOLEAN NOT NULL,
+        #         life INT NOT NULL
+        #     )"""
         return self.createTable(table_name, sql)
 
     def deleteTasksByIds(self, user, id_list):
@@ -582,6 +597,7 @@ if __name__ == "__main__":
     # db = PostgresDB("postgresql+psycopg2://AdTools:AdTools@38.34.175.87:9888/AdTools")
     db = PostgresDB(
         "postgresql+psycopg2://adtools:adtools@38.34.175.87:9888/adtools")
+    db.isExistsTable('alen')
     # ok,info = db.createTaskTable('se8888')
     # ok, info = db.createUserTable()
     # print(info)
@@ -612,15 +628,15 @@ if __name__ == "__main__":
     #     datas.append(new_data)
     # print(db.insertTaskData('win88',datas))
 
-    data = {
-        "username": "kevin",
-        "pwd": "168888",
-        "points": 10000000,
-        "freeze_points": 0,
-        "wait_points": 0,
-        "login_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-    }
-    print(db.insertUserData(data))
+    # data = {
+    #     "username": "kevin",
+    #     "pwd": "168888",
+    #     "points": 10000000,
+    #     "freeze_points": 0,
+    #     "wait_points": 0,
+    #     "login_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+    # }
+    # print(db.insertUserData(data))
 
     # r = db.fetchData('task_s88')
     # print(r)

@@ -104,12 +104,19 @@ class Item(BaseModel):
     life: int
 
 
+# 定义数据模型 账号密码
+class UserPwdItem(BaseModel):
+    user: str
+    password: str
+
+
 # 定义 POST 接口
 @app.post("/tasks/{user}")
 async def uploadTask(user: str, item: Item):
     """上传任务"""
     print(item.dict())
     return await router.uploadTask(user, item.dict())
+
 
 @app.get("/tasks")
 async def remoteTasks(request: Request,
@@ -121,11 +128,23 @@ async def remoteTasks(request: Request,
     """获取pgsql中的任务数据"""
     count = 5 if count > 5 else count
     count = 1 if count < 1 else count
-    return await router.getTasks(None, count, do_user, do_account, limit, sortt)
+    return await router.getTasks(None, count, do_user, do_account, limit,
+                                 sortt)
+
+@app.get("/tasks_user_data/{user}")
+async def getUserDataByUsername(request: Request, user: str):
+    """获取用户积分及登录信息"""
+    return await router.getUserDataByUsername(user)
+
+@app.post("/tasks_verify")
+async def verifyUserPwd(request: Request, item: UserPwdItem):
+    """验证账号密码"""
+    print(item.dict())
+    return await router.verifyUserPwd(item.dict())
 
 
 @app.get("/tasks_create_table/{user}")
-async def createTasksTable(request: Request,user: str):
+async def createTasksTable(request: Request, user: str):
     """新建一个用户任务表格"""
     return await router.createTasksTable(user)
 
@@ -141,7 +160,8 @@ async def tasks(request: Request,
     """获取pgsql中的任务数据"""
     count = 5 if count > 5 else count
     count = 1 if count < 1 else count
-    return await router.getTasks(user, count, do_user, do_account, limit, sortt)
+    return await router.getTasks(user, count, do_user, do_account, limit,
+                                 sortt)
 
 
 @app.get("/tasks_del/{user}")
@@ -249,8 +269,6 @@ async def ai(action: AiAction, q: str = None):
     if q is None:
         return JSONResponse(status_code=404, content={"error": "参数错误"})
     return await router.geminiAI(action, q)
-
-
 
 
 if __name__ == "__main__":

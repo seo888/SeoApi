@@ -194,6 +194,27 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
+    async def getUserDataByUsername(self, user):
+        """获取用户积分及登录信息"""
+        ok, result = self.pgdb.getUserDataByUsername(user)
+        print(ok, result)
+        if ok:
+            result_data = {"success": ok, "result": result}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+
+    async def verifyUserPwd(self, data):
+        """验证账号密码"""
+        user = data['username']
+        pwd = data['password']
+        ok, result = self.pgdb.loginVerify(user, pwd)
+        if ok:
+            result_data = {"success": ok, "result": result}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+
     async def createTasksTable(self, user):
         """新建一个用户任务表格"""
         # 判断是否存在表
