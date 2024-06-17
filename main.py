@@ -104,10 +104,7 @@ class Item(BaseModel):
     life: int
 
 
-# 定义数据模型 账号密码
-class UserPwdItem(BaseModel):
-    user: str
-    password: str
+
 
 
 # 定义 POST 接口
@@ -136,6 +133,11 @@ async def getUserDataByUsername(request: Request, user: str):
     """获取用户积分及登录信息"""
     return await router.getUserDataByUsername(user)
 
+
+# 定义数据模型 账号密码
+class UserPwdItem(BaseModel):
+    username: str
+    password: str
 @app.post("/tasks_verify")
 async def verifyUserPwd(request: Request, item: UserPwdItem):
     """验证账号密码"""
