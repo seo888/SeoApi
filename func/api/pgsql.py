@@ -292,9 +292,9 @@ class PostgresDB:
         sql = f"""
             CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
-                keyword VARCHAR(100),
-                title VARCHAR(100),
-                link VARCHAR(150) NOT NULL,
+                keyword VARCHAR(200),
+                title VARCHAR(200),
+                link VARCHAR(400) NOT NULL,
                 link_from VARCHAR(100),
                 friend_links TEXT,
                 publish_time VARCHAR(100) NOT NULL,
@@ -342,7 +342,7 @@ class PostgresDB:
                 # print('不存在则创建')
                 self.createLinkTable(user)
                 return self.insertLinkData(user, data)
-            return False, info, 0
+            return False, info
 
     # ============================= 任务表 users =============================
     def createTaskTable(self, user):
@@ -351,9 +351,9 @@ class PostgresDB:
         sql = f"""
             CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
-                keyword VARCHAR(100),
-                title VARCHAR(100) NOT NULL,
-                link VARCHAR(150),
+                keyword VARCHAR(200),
+                title VARCHAR(200) NOT NULL,
+                link VARCHAR(400),
                 task_type VARCHAR(100) NOT NULL,
                 finish_time VARCHAR(100),
                 start_time VARCHAR(100),
@@ -385,7 +385,7 @@ class PostgresDB:
         except Exception as e:
             info = f"《{table_name}》批量删除友链时出错：{e}"
             return False, info
-        
+
     def deleteTasksByIds(self, user, id_list):
         """根据传入的id列表批量删除数据，并返回删除的 task_type 统计"""
         table_name = self.getTaskTableName(user)
