@@ -271,7 +271,7 @@ class Router:
 
     async def getLinks(self, user):
         """获取链接"""
-        ok, result = self.pgdb.getLinks(user)
+        ok, result = self.pgdb.getLinks(user, count=5)
         print(ok, result)
         if ok:
             result_list = []
