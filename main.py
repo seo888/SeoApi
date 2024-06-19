@@ -90,18 +90,20 @@ async def scriptPy(request: Request,
 
 # 定义数据模型
 class Item(BaseModel):
-    task_name: str
+    keyword: str
     title: str
+    link: str
+    task_type: str
+    finish_time: str
     start_time: str
     do_user: str
     do_account: str
-    finish_time: str
-    link: str
-    task_type: str
+    task_name: str
     task_data: str
     publish_time: str
     is_remote: bool
     life: int
+    friend_link_mode: str
 
 
 # 定义 POST 接口
@@ -110,6 +112,35 @@ async def uploadTask(user: str, item: Item):
     """上传任务"""
     print(item.dict())
     return await router.uploadTask(user, item.dict())
+
+
+# 定义数据模型
+class LinkItem(BaseModel):
+    keyword: str
+    title: str
+    link: str
+    link_from: str
+    friend_links: str
+    publish_time: str
+    indexing: bool
+    indexing_time: str
+    keyword_ranking: int
+    keyword_ranking_time: str
+    title_ranking: int
+    title_ranking_time: str
+
+
+# 定义 POST 接口
+@app.post("/links/{user}")
+async def uploadLink(user: str, item: LinkItem):
+    """上传友链"""
+    print(item.dict())
+    return await router.uploadLink(user, item.dict())
+
+@app.get("/links/{user}")
+async def getLinks(user: str):
+    """获取友链"""
+    return await router.getLinks(user)
 
 
 @app.get("/tasks")
@@ -151,6 +182,12 @@ async def createTasksTable(request: Request, user: str):
     return await router.createTasksTable(user)
 
 
+@app.get("/links_create_table/{user}")
+async def createLinksTable(request: Request, user: str):
+    """新建一个友链库表格"""
+    return await router.createLinksTable(user)
+
+
 @app.get("/tasks/{user}")
 async def tasks(request: Request,
                 user: str,
@@ -170,6 +207,12 @@ async def tasks(request: Request,
 async def delTask(request: Request, user: str, ids: str):
     """删除任务"""
     return await router.delTask(user, ids)
+
+
+@app.get("/links_del/{user}")
+async def delLink(request: Request, user: str, ids: str):
+    """删除任务"""
+    return await router.delLink(user, ids)
 
 
 @app.get("/tasks_finish/{user}")

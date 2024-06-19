@@ -215,10 +215,26 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
+    async def createLinksTable(self, user):
+        """新建一个用户任务表格"""
+        # 判断是否存在表
+        ok, is_exists = self.pgdb.isExistsTable(
+            self.pgdb.getLinkTableName(user))
+        if ok:
+            if is_exists:
+                result_data = {"success": False, "result": '已存在表格'}
+            else:
+                self.pgdb.createLinkTable(user)
+                result_data = {"success": True}
+        else:
+            result_data = {"success": ok, "error_info": is_exists}
+        return JSONResponse(result_data)
+
     async def createTasksTable(self, user):
         """新建一个用户任务表格"""
         # 判断是否存在表
-        ok, is_exists = self.pgdb.isExistsTable(user)
+        ok, is_exists = self.pgdb.isExistsTable(
+            self.pgdb.getTaskTableName(user))
         if ok:
             if is_exists:
                 result_data = {"success": False, "result": '已存在表格'}
@@ -232,6 +248,11 @@ class Router:
     async def uploadTask(self, user, data):
         ok, info, points = self.pgdb.insertTaskData(user, data)
         result_data = {"success": ok, "info": info, 'points': points}
+        return JSONResponse(result_data)
+
+    async def uploadLink(self, user, data):
+        ok, info = self.pgdb.insertLinkData(user, data)
+        result_data = {"success": ok, "info": info}
         return JSONResponse(result_data)
 
     async def getTasks(self, user, count, do_user, do_account, limit, sortt):
@@ -248,9 +269,38 @@ class Router:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
+    async def getLinks(self, user):
+        """获取链接"""
+        ok, result = self.pgdb.getLinks(user)
+        print(ok, result)
+        if ok:
+            result_list = []
+            for i in result:
+                keyword, title, link = i
+                if keyword != '':
+                    result_list.append(f'{keyword}|{link}')
+                elif title != '':
+                    result_list.append(f'{title}|{link}')
+                else:
+                    result_list.append(link)
+            result_data = {"success": ok, "result": result_list}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+
     async def delTask(self, user, ids):
         """删除任务"""
         ok, result = self.pgdb.deleteTasksByIds(user, ids.split(','))
+        print(ok, result)
+        if ok:
+            result_data = {"success": ok, "result": result}
+        else:
+            result_data = {"success": ok, "error_info": result}
+        return JSONResponse(result_data)
+    
+    async def delLink(self, user, ids):
+        """删除链接"""
+        ok, result = self.pgdb.deleteLinksByIds(user, ids.split(','))
         print(ok, result)
         if ok:
             result_data = {"success": ok, "result": result}

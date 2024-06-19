@@ -17,13 +17,21 @@ class PostgresDB:
         self.engine = create_engine(db_uri, echo=True)
         self.session = scoped_session(sessionmaker(bind=self.engine))
         self.have_remote_task_user = {}
-        self.task_table_head = 'task'
+        self.task_table_head = 'tasks'
+        self.link_table_head = 'links'
 
+    # ============================= 功能区 =============================
     def getTaskTableName(self, user):
         return f"{self.task_table_head}_{user}".lower()
 
+    def getLinkTableName(self, user='public'):
+        if user == 'public':
+            return self.link_table_head
+        return f"{self.link_table_head}_{user}".lower()
+
     def getLogTableName(self, account):
-        return f"log_{account.replace('@', '__').replace('-', '___').replace('.', '_')}".lower()
+        return f"log_{account.replace('@', '__').replace('-', '___').replace('.', '_')}".lower(
+        )
 
     def createTable(self, table_name, sql):
         """新建表"""
@@ -64,6 +72,59 @@ class PostgresDB:
             )"""
         return self.createTable(table_name, sql)
 
+    def isExistsTable(self, table_name):
+        """判断是否存在表格"""
+        try:
+            with self.session.begin():
+                sql = text(
+                    f"""SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{table_name}');"""
+                )
+                result = self.session.execute(sql).fetchall()[0][0]
+            # 根据查询结果返回 True 或 False
+            return True, result  # PostgreSQL 的 EXISTS 返回一个布尔值
+        except Exception as e:
+            info = f"判断是否存在表格时出错：{e}"
+            print(info)
+            return False, info
+
+    def fetchData(self, table_name):
+        """获取表格中所有数据"""
+        with self.session.begin():
+            result = self.session.execute(
+                text(f"SELECT * FROM {table_name}")).fetchall()
+            print(result)
+            return result
+
+    def getAllTables(self):
+        """获取数据库中所有表名"""
+        with self.session.begin():
+            result = self.session.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+                ))
+            tables = [row[0] for row in result.fetchall()]
+            return tables
+
+    def dropAllTables(self):
+        """删除数据库中所有表格"""
+        with self.session.begin():
+            result = self.session.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+                ))
+            tables = [row[0] for row in result.fetchall()]
+            for table in tables:
+                self.session.execute(text(f"DROP TABLE IF EXISTS {table}"))
+
+    def dropTables(self, tables_to_drop):
+        """删除指定的表格"""
+        with self.session.begin():
+            for table_name in tables_to_drop:
+                self.session.execute(
+                    text(f"DROP TABLE IF EXISTS {table_name}"))
+                print(f'已删除表 {table_name}')
+
+    # ============================= 日志表 log_ =============================
     def get24LogJson(self, account):
         """获取24小时内任务发送数 获取24小时内不同 task_type 的数据数量"""
         table_name = self.getLogTableName(account)
@@ -118,13 +179,35 @@ class PostgresDB:
                 self.createLogTable(account)
                 self.insertLogData(account, task_log_sql_data)
 
+    # ============================= 用户表 users =============================
+    def insertUserData(self, data):
+        """插入用户数据"""
+        table_name = "users"
+        try:
+            with self.session.begin():
+                sql_query = text(f"""
+                    INSERT INTO {table_name} (username, pwd, points, freeze_points, wait_points, login_time)
+                    VALUES (:username, :pwd, :points, :freeze_points, :wait_points, :login_time)
+                    """)
+                self.session.execute(sql_query, data)
+            info = f"《{table_name}》插入用户'{data['username']}'数据 成功"
+            return True, info
+        except Exception as e:
+            info = f"《{table_name}》插入用户'{data['username']}'数据 失败 报错：{e}"
+            if "does not exist" in str(e):
+                # print('不存在则创建')
+                self.createUserTable()
+                return self.insertUserData(data)
+            return False, info
+
     def updatePoints(self, username, freeze_points_delta, points_delta):
         """更新用户的冻结积分和总积分"""
+        table_name = "users"
         try:
             with self.session.begin():
                 self.session.execute(
                     text(
-                        """UPDATE users SET freeze_points = freeze_points + :freeze_points_delta, points = points + :points_delta WHERE username = :username"""
+                        f"""UPDATE {table_name} SET freeze_points = freeze_points + :freeze_points_delta, points = points + :points_delta WHERE username = :username"""
                     ),
                     {
                         "username": username,
@@ -138,32 +221,140 @@ class PostgresDB:
             info = f"更新用户积分时出错：{e}"
             return False, info
 
-    def isExistsTable(self, user):
-        """判断是否存在表格"""
-        table_name = self.getTaskTableName(user)
+    def getUserDataByUsername(self, username):
+        """通过用户名获取用户数据"""
+        table_name = "users"
+        try:
+            with self.session.begin():
+                result = self.session.execute(
+                    text(
+                        f"SELECT * FROM {table_name} WHERE username = :username"
+                    ),
+                    {
+                        "username": username
+                    },
+                ).fetchone()
+                if result:
+                    print(result)
+                    user_data = result[3:7]
+                    # 如果找到匹配的用户数据，将结果转换为字典形式并返回
+                    return True, user_data
+                else:
+                    info = f"用户名 '{username}' 不存在"
+                    return False, info
+        except Exception as e:
+            info = f"查询用户数据时出错：{e}"
+            return False, info
+
+    def loginVerify(self, user, pwd):
+        """登录验证"""
+        table_name = "users"
+        try:
+            with self.session.begin():
+                result = self.session.execute(
+                    text(
+                        f"SELECT * FROM {table_name} WHERE username = :username AND pwd = :pwd"
+                    ),
+                    {
+                        "username": user,
+                        "pwd": pwd
+                    },
+                )
+                user_data = result.fetchone()
+                if user_data:
+                    info = "登录验证成功"
+                    # 更新一下登录时间
+                    sql_query = text(f"""
+                    UPDATE {table_name} SET login_time = :new_login_time 
+                    WHERE username = :username
+                    """)
+                    self.session.execute(
+                        sql_query,
+                        {
+                            "new_login_time":
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "username":
+                            user,
+                        },
+                    )
+                    return True, info
+                else:
+                    info = "用户名或密码错误"
+                    return False, info
+        except Exception as e:
+            info = f"登录验证失败 报错：{e}"
+            return False, info
+
+    # ============================= 友链表 users =============================
+    def createLinkTable(self, user):
+        """创建友链数据表"""
+        table_name = self.getLinkTableName(user)
+        sql = f"""
+            CREATE TABLE {table_name} (
+                id SERIAL PRIMARY KEY,
+                keyword VARCHAR(100),
+                title VARCHAR(100),
+                link VARCHAR(150) NOT NULL,
+                link_from VARCHAR(100),
+                friend_links TEXT,
+                publish_time VARCHAR(100) NOT NULL,
+                indexing BOOLEAN,
+                indexing_time VARCHAR(100),
+                keyword_ranking SMALLINT,
+                keyword_ranking_time VARCHAR(100),
+                title_ranking SMALLINT,
+                title_ranking_time VARCHAR(100)
+            )"""
+        return self.createTable(table_name, sql)
+
+    def getLinks(self, user, count=1):
+        """获取友链"""
+        table_name = self.getLinkTableName(user)
         try:
             with self.session.begin():
                 sql = text(
-                    f"""SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{table_name}');"""
+                    f"SELECT keyword, title, link FROM {table_name} WHERE link != '' ORDER BY RANDOM() LIMIT {count}"
                 )
-                result = self.session.execute(sql).fetchall()[0][0]
-            # 根据查询结果返回 True 或 False
-            return True, result  # PostgreSQL 的 EXISTS 返回一个布尔值
-        except Exception as e:
-            info = f"判断是否存在表格时出错：{e}"
+                results = self.session.execute(sql).fetchall()
+            info = f"《{table_name}》获取友链数据 成功"
             print(info)
+            return True, results
+        except Exception as e:
+            info = f"《{table_name}》获取友链数据 失败 报错：{e}"
             return False, info
 
+    def insertLinkData(self, user, data):
+        """插入友链库数据"""
+        table_name = self.getLinkTableName(user)
+        try:
+            with self.session.begin():
+                sql_query = text(f"""
+                    INSERT INTO {table_name} (keyword, title, link, link_from, friend_links, publish_time, indexing, indexing_time, keyword_ranking, keyword_ranking_time, title_ranking, title_ranking_time)
+                    VALUES (:keyword, :title, :link, :link_from, :friend_links, :publish_time, :indexing, :indexing_time, :keyword_ranking, :keyword_ranking_time, :title_ranking, :title_ranking_time)
+                    """)
+                self.session.execute(sql_query, data)
+            info = f"《{table_name}》插入友链数据 成功"
+            return True, info
+        except Exception as e:
+            info = f"《{table_name}》插入友链数据 失败 报错：{e}"
+            print(info)
+            if "does not exist" in str(e):
+                # print('不存在则创建')
+                self.createLinkTable(user)
+                return self.insertLinkData(user, data)
+            return False, info, 0
+
+    # ============================= 任务表 users =============================
     def createTaskTable(self, user):
         """创建任务数据表"""
         table_name = self.getTaskTableName(user)
         sql = f"""
             CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
-                task_type VARCHAR(100) NOT NULL,
+                keyword VARCHAR(100),
                 title VARCHAR(100) NOT NULL,
                 link VARCHAR(150),
-                keyword VARCHAR(100),
+                task_type VARCHAR(100) NOT NULL,
                 finish_time VARCHAR(100),
                 start_time VARCHAR(100),
                 do_user VARCHAR(100),
@@ -172,10 +363,29 @@ class PostgresDB:
                 task_data TEXT NOT NULL,
                 publish_time VARCHAR(100) NOT NULL,
                 is_remote BOOLEAN NOT NULL,
-                life INT NOT NULL
+                life INT NOT NULL,
+                friend_link_mode VARCHAR(100)
             )"""
         return self.createTable(table_name, sql)
 
+    def deleteLinksByIds(self, user, id_list):
+        """根据传入的id列表批量删除数据，并返回删除的 task_type 统计"""
+        table_name = self.getLinkTableName(user)
+        try:
+            # 将 id_list 转换为字符串，使用逗号分隔，以便在 SQL 查询中使用
+            id_str = ','.join(map(str, id_list))
+            with self.session.begin():
+                # 执行删除操作
+                sql_delete = text(
+                    f"DELETE FROM {table_name} WHERE id IN ({id_str})")
+                result_delete = self.session.execute(sql_delete)
+                row_count = result_delete.rowcount
+            info = f"《{table_name}》批量删除友链 成功，删除了{row_count}条记录"
+            return True, info
+        except Exception as e:
+            info = f"《{table_name}》批量删除友链时出错：{e}"
+            return False, info
+        
     def deleteTasksByIds(self, user, id_list):
         """根据传入的id列表批量删除数据，并返回删除的 task_type 统计"""
         table_name = self.getTaskTableName(user)
@@ -268,7 +478,8 @@ class PostgresDB:
             if len(self.have_remote_task_user) == 0:
                 # 更新一下远程任务用户库
                 table_names = [
-                    i for i in self.getAllTables() if i.startswith(f'{self.task_table_head}_')
+                    i for i in self.getAllTables()
+                    if i.startswith(f'{self.task_table_head}_')
                 ]
                 with self.session.begin():
                     for table_name in table_names:
@@ -319,9 +530,6 @@ class PostgresDB:
                             f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY RANDOM() LIMIT {count}"
                         )
                     else:
-                        # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
-                        # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
-                        # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
                         sort_list_to_text = "ARRAY[" + ",".join(
                             f"'{item}'" for item in sort_list) + "]"
                         sql = text(
@@ -334,9 +542,6 @@ class PostgresDB:
                             f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY RANDOM() LIMIT {count}"
                         )
                     else:
-                        # sort_list_to_text = "'" + "', '".join(sort_list) + "'"
-                        # sql = text(f"SELECT * FROM {table_name} WHERE start_time = '' AND task_type NOT IN ({limit_list_to_text}) ORDER BY FIELD(task_type, {sort_list_to_text}) LIMIT {count}")
-                        # sort_list_to_text = "{" + ",".join(f"'{item}'" for item in sort_list) + "}"
                         sort_list_to_text = "ARRAY[" + ",".join(
                             f"'{item}'" for item in sort_list) + "]"
                         sql = text(
@@ -348,8 +553,9 @@ class PostgresDB:
                     task_data = {
                         'user': user,
                         'id': result[0],
-                        'type': result[8],
-                        'data': result[9]
+                        'type': result[4],
+                        'data': result[10],
+                        'friend_link_mode': result[14]
                     }
                     print(
                         f"{do_user} 获取用户{user}的id:{task_data['id']} {task_data['type']} 任务"
@@ -371,7 +577,7 @@ class PostgresDB:
                     task_log_sql_data = {
                         "task_id": f"{user}-{result[0]}",
                         "title": result[2],
-                        "task_type": result[8],
+                        "task_type": result[4],
                         "start_time": int(time.time()),
                     }
                     task_log_sql_datas.append(task_log_sql_data)
@@ -391,12 +597,6 @@ class PostgresDB:
             info = f"[{user}]获取用户任务时出错：{e}"
             print(info)
             return False, info
-
-    def fetchData(self, table_name):
-        """获取表格中所有数据"""
-        with self.session.begin():
-            result = self.session.execute(text(f"SELECT * FROM {table_name}"))
-            return result.fetchall()
 
     def updateFinishTaskData(self, user, data):
         """更新完成任务数据"""
@@ -420,10 +620,10 @@ class PostgresDB:
         try:
             with self.session.begin():
                 sql_query = text(f"""
-                    INSERT INTO {table_name} (task_name, title, start_time, do_user, do_account, finish_time, 
-                    link, task_type, task_data, publish_time, is_remote, life) 
-                    VALUES (:task_name, :title, :start_time, :do_user, :do_account, :finish_time, 
-                    :link, :task_type, :task_data, :publish_time, :is_remote, :life) 
+                    INSERT INTO {table_name} (keyword, title, link, task_type, finish_time, start_time, do_user, do_account, task_name,
+                    task_data, publish_time, is_remote, life, friend_link_mode)
+                    VALUES (:keyword, :title, :link, :task_type, :finish_time, :start_time, :do_user, :do_account, :task_name,
+                    :task_data, :publish_time, :is_remote, :life, :friend_link_mode)
                     """)
                 self.session.execute(sql_query, data)
                 # 消费积分
@@ -450,125 +650,13 @@ class PostgresDB:
                 return self.insertTaskData(user, data)
             return False, info, 0
 
-    def insertUserData(self, data):
-        """插入用户数据"""
-        table_name = "users"
-        try:
-            with self.session.begin():
-                sql_query = text(f"""
-                    INSERT INTO {table_name} (username, pwd, points, freeze_points, wait_points, login_time)
-                    VALUES (:username, :pwd, :points, :freeze_points, :wait_points, :login_time)
-                    """)
-                self.session.execute(sql_query, data)
-            info = f"《{table_name}》插入用户'{data['username']}'数据 成功"
-            return True, info
-        except Exception as e:
-            info = f"《{table_name}》插入用户'{data['username']}'数据 失败 报错：{e}"
-            if "does not exist" in str(e):
-                # print('不存在则创建')
-                self.createUserTable()
-                return self.insertUserData(data)
-            return False, info
-
-    def getUserDataByUsername(self, username):
-        """通过用户名获取用户数据"""
-        table_name = "users"
-        try:
-            with self.session.begin():
-                result = self.session.execute(
-                    text(
-                        f"SELECT * FROM {table_name} WHERE username = :username"
-                    ),
-                    {
-                        "username": username
-                    },
-                ).fetchone()
-                if result:
-                    print(result)
-                    user_data = result[3:7]
-                    # 如果找到匹配的用户数据，将结果转换为字典形式并返回
-                    return True, user_data
-                else:
-                    info = f"用户名 '{username}' 不存在"
-                    return False, info
-        except Exception as e:
-            info = f"查询用户数据时出错：{e}"
-            return False, info
-
-    def loginVerify(self, user, pwd):
-        """登录验证"""
-        table_name = "users"
-        try:
-            with self.session.begin():
-                result = self.session.execute(
-                    text(
-                        f"SELECT * FROM {table_name} WHERE username = :username AND pwd = :pwd"
-                    ),
-                    {
-                        "username": user,
-                        "pwd": pwd
-                    },
-                )
-                user_data = result.fetchone()
-                if user_data:
-                    info = "登录验证成功"
-                    # 更新一下登录时间
-                    sql_query = text(f"""
-                    UPDATE {table_name} SET login_time = :new_login_time 
-                    WHERE username = :username
-                    """)
-                    self.session.execute(
-                        sql_query,
-                        {
-                            "new_login_time":
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            "username":
-                            user,
-                        },
-                    )
-                    return True, info
-                else:
-                    info = "用户名或密码错误"
-                    return False, info
-        except Exception as e:
-            info = f"登录验证失败 报错：{e}"
-            return False, info
-
-    def getAllTables(self):
-        """获取数据库中所有表名"""
-        with self.session.begin():
-            result = self.session.execute(
-                text(
-                    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-                ))
-            tables = [row[0] for row in result.fetchall()]
-            return tables
-
-    def dropAllTables(self):
-        """删除数据库中所有表格"""
-        with self.session.begin():
-            result = self.session.execute(
-                text(
-                    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-                ))
-            tables = [row[0] for row in result.fetchall()]
-            for table in tables:
-                self.session.execute(text(f"DROP TABLE IF EXISTS {table}"))
-
-    def dropTables(self, tables_to_drop):
-        """删除指定的表格"""
-        with self.session.begin():
-            for table_name in tables_to_drop:
-                self.session.execute(
-                    text(f"DROP TABLE IF EXISTS {table_name}"))
-                print(f'已删除表 {table_name}')
-
 
 if __name__ == "__main__":
     # db = PostgresDB("postgresql+psycopg2://AdTools:AdTools@38.34.175.87:9888/AdTools")
     db = PostgresDB(
         "postgresql+psycopg2://adtools:adtools@38.34.175.87:9888/adtools")
-    db.isExistsTable('alen')
+    db.dropTables(['links_alen'])
+    # db.fetchData('tasks_alen')
     # ok,info = db.createTaskTable('se8888')
     # ok, info = db.createUserTable()
     # print(info)
