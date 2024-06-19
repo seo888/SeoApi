@@ -124,6 +124,19 @@ class PostgresDB:
                     text(f"DROP TABLE IF EXISTS {table_name}"))
                 print(f'已删除表 {table_name}')
 
+    def changeTableColumn(self, table_name, column_name, type_value):
+        """更改字段类型"""
+        with self.session.begin():
+            self.session.execute(
+                text(
+                    f"ALTER TABLE {table_name} ALTER COLUMN {column_name} TYPE {type_value};"
+                ))
+            result = self.session.execute(
+                text(
+                    f"SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '{table_name}' AND column_name = '{column_name}'"
+                ))
+            print(result.fetchone())
+
     # ============================= 日志表 log_ =============================
     def get24LogJson(self, account):
         """获取24小时内任务发送数 获取24小时内不同 task_type 的数据数量"""
@@ -655,7 +668,14 @@ if __name__ == "__main__":
     # db = PostgresDB("postgresql+psycopg2://AdTools:AdTools@38.34.175.87:9888/AdTools")
     db = PostgresDB(
         "postgresql+psycopg2://adtools:adtools@38.34.175.87:9888/adtools")
-    db.dropTables(['links_alen'])
+    # db.dropTables(['links_alen'])
+    for user in ['alen', 'alex', 'panda', 'aidan', 'owen', 'kevin']:
+        db.changeTableColumn("links_"+user, 'link', 'VARCHAR(1000)')
+        # db.changeTableColumn("links_"+user, 'title', 'VARCHAR(200)')
+        # db.changeTableColumn("links_"+user, 'keyword', 'VARCHAR(200)')
+        db.changeTableColumn("tasks_"+user, 'link', 'VARCHAR(1000)')
+        # db.changeTableColumn("tasks_"+user, 'title', 'VARCHAR(200)')
+        # db.changeTableColumn("tasks_"+user, 'keyword', 'VARCHAR(200)')
     # db.fetchData('tasks_alen')
     # ok,info = db.createTaskTable('se8888')
     # ok, info = db.createUserTable()
