@@ -340,7 +340,7 @@ class PostgresDB:
                 self.createLinkTable(user)
                 return self.insertLinkData(user, data)
             return False, info
-  
+
     def getLinksl(self, user, count=1):
         """获取留痕链"""
         table_name = self.getLinklTableName(user)
