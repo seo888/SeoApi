@@ -216,7 +216,7 @@ class Router:
         return JSONResponse(result_data)
 
     async def createLinksTable(self, user):
-        """新建一个用户任务表格"""
+        """新建一个用户链接表格"""
         # 判断是否存在表
         ok, is_exists = self.pgdb.isExistsTable(
             self.pgdb.getLinkTableName(user))
@@ -228,6 +228,35 @@ class Router:
                 result_data = {"success": True}
         else:
             result_data = {"success": ok, "error_info": is_exists}
+        return JSONResponse(result_data)
+
+    async def createLinkslTable(self, user):
+        """新建一个用户留痕表格"""
+        # 判断是否存在表
+        ok, is_exists = self.pgdb.isExistsTable(
+            self.pgdb.getLinklTableName(user))
+        if ok:
+            if is_exists:
+                result_data = {"success": False, "result": '已存在表格'}
+            else:
+                self.pgdb.createLinklTable(user)
+                result_data = {"success": True}
+        else:
+            result_data = {"success": ok, "error_info": is_exists}
+        return JSONResponse(result_data)
+    
+    async def getLinksl(self, user):
+        """获取留痕链接"""
+        ok, result = self.pgdb.getLinksl(user, count=1)
+        print(ok, result)
+        if ok:
+            result_list = []
+            for i in result:
+                keyword, link = i
+                result_list.append(f'{keyword}|{link}')
+            result_data = {"success": ok, "result": result_list}
+        else:
+            result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
 
     async def createTasksTable(self, user):
@@ -252,6 +281,11 @@ class Router:
 
     async def uploadLink(self, user, data):
         ok, info = self.pgdb.insertLinkData(user, data)
+        result_data = {"success": ok, "info": info}
+        return JSONResponse(result_data)
+
+    async def uploadLinkl(self, user, data):
+        ok, info = self.pgdb.insertLinklData(user, data)
         result_data = {"success": ok, "info": info}
         return JSONResponse(result_data)
 
@@ -297,7 +331,7 @@ class Router:
         else:
             result_data = {"success": ok, "error_info": result}
         return JSONResponse(result_data)
-    
+
     async def delLink(self, user, ids):
         """删除链接"""
         ok, result = self.pgdb.deleteLinksByIds(user, ids.split(','))

@@ -137,10 +137,37 @@ async def uploadLink(user: str, item: LinkItem):
     print(item.dict())
     return await router.uploadLink(user, item.dict())
 
+
 @app.get("/links/{user}")
 async def getLinks(user: str):
     """获取友链"""
     return await router.getLinks(user)
+
+
+# 定义数据模型
+class LinklItem(BaseModel):
+    keyword: str
+    link: str
+    domain: str
+    domain_indexing_count: int
+    domain_weight: int
+    full_domain: str
+    full_domain_indexing_count: int
+    publish_time: str
+
+
+# 定义 POST 接口
+@app.post("/linksl/{user}")
+async def uploadLinkl(user: str, item: LinklItem):
+    """上传留痕"""
+    print(item.dict())
+    return await router.uploadLinkl(user, item.dict())
+
+
+@app.get("/linksl/{user}")
+async def getLinksl(user: str):
+    """获取留痕"""
+    return await router.getLinksl(user)
 
 
 @app.get("/tasks")
@@ -186,6 +213,12 @@ async def createTasksTable(request: Request, user: str):
 async def createLinksTable(request: Request, user: str):
     """新建一个友链库表格"""
     return await router.createLinksTable(user)
+
+
+@app.get("/linksl_create_table/{user}")
+async def createLinkslTable(request: Request, user: str):
+    """新建一个留痕库表格"""
+    return await router.createLinkslTable(user)
 
 
 @app.get("/tasks/{user}")

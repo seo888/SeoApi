@@ -19,6 +19,7 @@ class PostgresDB:
         self.have_remote_task_user = {}
         self.task_table_head = 'tasks'
         self.link_table_head = 'links'
+        self.linkl_table_head = 'linksl'
 
     # ============================= 功能区 =============================
     def getTaskTableName(self, user):
@@ -28,6 +29,9 @@ class PostgresDB:
         if user == 'public':
             return self.link_table_head
         return f"{self.link_table_head}_{user}".lower()
+
+    def getLinklTableName(self, user):
+        return f"{self.linkl_table_head}_{user}".lower()
 
     def getLogTableName(self, account):
         return f"log_{account.replace('@', '__').replace('-', '___').replace('.', '_')}".lower(
@@ -296,6 +300,61 @@ class PostgresDB:
                     return False, info
         except Exception as e:
             info = f"登录验证失败 报错：{e}"
+            return False, info
+
+    # ============================= 留痕表 users =============================
+    def createLinklTable(self, user):
+        """创建留痕数据表"""
+        table_name = self.getLinklTableName(user)
+        sql = f"""
+            CREATE TABLE {table_name} (
+                id SERIAL PRIMARY KEY,
+                keyword VARCHAR(200),
+                link VARCHAR(500) NOT NULL,
+                domain VARCHAR(200),
+                domain_indexing_count INT,
+                domain_weight INT,
+                full_domain VARCHAR(200),
+                full_domain_indexing_count INT,
+                publish_time VARCHAR(100) NOT NULL
+            )"""
+        return self.createTable(table_name, sql)
+
+    def insertLinklData(self, user, data):
+        """插入留痕数据"""
+        table_name = self.getLinklTableName(user)
+        try:
+            with self.session.begin():
+                sql_query = text(f"""
+                    INSERT INTO {table_name} (keyword,link, domain, domain_indexing_count, domain_weight, full_domain, full_domain_indexing_count, publish_time)
+                    VALUES (:keyword, :link, :domain, :domain_indexing_count, :domain_weight, :full_domain, :full_domain_indexing_count, :publish_time)
+                    """)
+                self.session.execute(sql_query, data)
+            info = f"《{table_name}》插入留痕链接 成功"
+            return True, info
+        except Exception as e:
+            info = f"《{table_name}》插入留痕链接 失败 报错：{e}"
+            print(info)
+            if "does not exist" in str(e):
+                # print('不存在则创建')
+                self.createLinkTable(user)
+                return self.insertLinkData(user, data)
+            return False, info
+  
+    def getLinksl(self, user, count=1):
+        """获取留痕链"""
+        table_name = self.getLinklTableName(user)
+        try:
+            with self.session.begin():
+                sql = text(
+                    f"SELECT keyword, link FROM {table_name} WHERE link != '' ORDER BY RANDOM() LIMIT {count}"
+                )
+                results = self.session.execute(sql).fetchall()
+            info = f"《{table_name}》获取友链数据 成功"
+            print(info)
+            return True, results
+        except Exception as e:
+            info = f"《{table_name}》获取友链数据 失败 报错：{e}"
             return False, info
 
     # ============================= 友链表 users =============================
@@ -663,17 +722,16 @@ class PostgresDB:
                 return self.insertTaskData(user, data)
             return False, info, 0
 
-
 if __name__ == "__main__":
     # db = PostgresDB("postgresql+psycopg2://AdTools:AdTools@38.34.175.87:9888/AdTools")
     db = PostgresDB(
         "postgresql+psycopg2://adtools:adtools@38.34.175.87:9888/adtools")
     # db.dropTables(['links_alen'])
     for user in ['alen', 'alex', 'panda', 'aidan', 'owen', 'kevin']:
-        db.changeTableColumn("links_"+user, 'link', 'VARCHAR(1000)')
+        db.changeTableColumn("links_" + user, 'link', 'VARCHAR(1000)')
         # db.changeTableColumn("links_"+user, 'title', 'VARCHAR(200)')
         # db.changeTableColumn("links_"+user, 'keyword', 'VARCHAR(200)')
-        db.changeTableColumn("tasks_"+user, 'link', 'VARCHAR(1000)')
+        db.changeTableColumn("tasks_" + user, 'link', 'VARCHAR(1000)')
         # db.changeTableColumn("tasks_"+user, 'title', 'VARCHAR(200)')
         # db.changeTableColumn("tasks_"+user, 'keyword', 'VARCHAR(200)')
     # db.fetchData('tasks_alen')
