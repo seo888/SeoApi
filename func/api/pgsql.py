@@ -357,6 +357,24 @@ class PostgresDB:
             info = f"《{table_name}》获取友链数据 失败 报错：{e}"
             return False, info
 
+    def deleteLinkslByIds(self, user, id_list):
+        """根据传入的id列表批量删除数据，并返回删除的 task_type 统计"""
+        table_name = self.getLinklTableName(user)
+        try:
+            # 将 id_list 转换为字符串，使用逗号分隔，以便在 SQL 查询中使用
+            id_str = ','.join(map(str, id_list))
+            with self.session.begin():
+                # 执行删除操作
+                sql_delete = text(
+                    f"DELETE FROM {table_name} WHERE id IN ({id_str})")
+                result_delete = self.session.execute(sql_delete)
+                row_count = result_delete.rowcount
+            info = f"《{table_name}》批量删除留痕链接 成功，删除了{row_count}条记录"
+            return True, info
+        except Exception as e:
+            info = f"《{table_name}》批量删除留痕链接时出错：{e}"
+            return False, info
+
     # ============================= 友链表 users =============================
     def createLinkTable(self, user):
         """创建友链数据表"""

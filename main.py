@@ -247,6 +247,11 @@ async def delLink(request: Request, user: str, ids: str):
     """删除任务"""
     return await router.delLink(user, ids)
 
+@app.get("/linksl_del/{user}")
+async def delLinkl(request: Request, user: str, ids: str):
+    """删除任务"""
+    return await router.delLinkl(user, ids)
+
 
 @app.get("/tasks_finish/{user}")
 async def finishTasks(request: Request, user: str, tid: str, link: str):
