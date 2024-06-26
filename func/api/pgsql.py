@@ -309,7 +309,6 @@ class PostgresDB:
         sql = f"""
             CREATE TABLE {table_name} (
                 id SERIAL PRIMARY KEY,
-                keyword VARCHAR(200),
                 link VARCHAR(500) NOT NULL,
                 domain VARCHAR(200),
                 domain_indexing_count INT,
@@ -326,8 +325,8 @@ class PostgresDB:
         try:
             with self.session.begin():
                 sql_query = text(f"""
-                    INSERT INTO {table_name} (keyword,link, domain, domain_indexing_count, domain_weight, full_domain, full_domain_indexing_count, publish_time)
-                    VALUES (:keyword, :link, :domain, :domain_indexing_count, :domain_weight, :full_domain, :full_domain_indexing_count, :publish_time)
+                    INSERT INTO {table_name} (link, domain, domain_indexing_count, domain_weight, full_domain, full_domain_indexing_count, publish_time)
+                    VALUES (:link, :domain, :domain_indexing_count, :domain_weight, :full_domain, :full_domain_indexing_count, :publish_time)
                     """)
                 self.session.execute(sql_query, data)
             info = f"《{table_name}》插入留痕链接 成功"
@@ -744,12 +743,12 @@ if __name__ == "__main__":
     # db = PostgresDB("postgresql+psycopg2://AdTools:AdTools@38.34.175.87:9888/AdTools")
     db = PostgresDB(
         "postgresql+psycopg2://adtools:adtools@38.34.175.87:9888/adtools")
-    # db.dropTables(['links_alen'])
-    for user in ['alen', 'alex', 'panda', 'aidan', 'owen', 'kevin']:
-        db.changeTableColumn("links_" + user, 'link', 'VARCHAR(1000)')
+    db.dropTables(['linksl_alen'])
+    # for user in ['alen', 'alex', 'panda', 'aidan', 'owen', 'kevin']:
+    #     db.changeTableColumn("links_" + user, 'link', 'VARCHAR(1000)')
         # db.changeTableColumn("links_"+user, 'title', 'VARCHAR(200)')
         # db.changeTableColumn("links_"+user, 'keyword', 'VARCHAR(200)')
-        db.changeTableColumn("tasks_" + user, 'link', 'VARCHAR(1000)')
+        # db.changeTableColumn("tasks_" + user, 'link', 'VARCHAR(1000)')
         # db.changeTableColumn("tasks_"+user, 'title', 'VARCHAR(200)')
         # db.changeTableColumn("tasks_"+user, 'keyword', 'VARCHAR(200)')
     # db.fetchData('tasks_alen')

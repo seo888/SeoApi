@@ -146,7 +146,6 @@ async def getLinks(user: str):
 
 # 定义数据模型
 class LinklItem(BaseModel):
-    keyword: str
     link: str
     domain: str
     domain_indexing_count: int
