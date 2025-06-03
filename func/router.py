@@ -9,7 +9,7 @@ import arrow
 from fastapi import Response, Request, Form, Body
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 from func.api.baidu import Baidu
-# from func.api.domain import Register
+from func.api.domain import Register
 from func.api.gemini import Gemini, GeminiWeb
 from func.api.google import Google
 from func.api.bing import Bing
@@ -26,7 +26,7 @@ class Router:
     def __init__(self):
         self.func = Func()
 
-        # self.register = Register(self.func)
+        self.register = Register(self.func)
         config = self.func.get_yaml('config/config.yml')
         self.pgdb = PostgresDB(config['【数据库配置】']['PostgresDB'])
         # self.gemini_tokens = self.get_gemini_tokens()
