@@ -15,5 +15,6 @@ COPY . .
 
 EXPOSE 17888
 
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "17888"]
 # 设置容器启动时的默认命令 main.py中要写 0.0.0.0
-CMD ["python", "main.py"]
+# CMD ["python", "main.py"]
