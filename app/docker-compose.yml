@@ -34,4 +34,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /www/SeoApi/data/postgres_data  # 指定外部的路径
+      device: /www/SeoApi/postgres_data  # 指定外部的路径
