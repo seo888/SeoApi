@@ -104,8 +104,8 @@ mv -f "$new" "$old"
 # # 使用 cp 命令复制新目录的内容到目标目录
 # cp -r "$new"/* "$old"/
 
-# new="/www/SeoApi_New/app/_"
-# old="/www/SeoApi/app/_"
+new="/www/SeoApi_New/app"
+old="/www/SeoApi/app"
 backup_dir="/tmp/js_backup" # 临时备份目录
 
 # 1. 备份原 js 目录
@@ -120,7 +120,7 @@ if [ -d "$old" ]; then
 fi
 
 # 3. 复制新内容
-# cp -r "$new"/* "$old/"
+cp -r "$new"/* "$old/"
 
 # 4. 恢复原 js 目录
 if [ -d "$backup_dir/js" ]; then
