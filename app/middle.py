@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 from starlette.templating import Jinja2Templates
 # import tldextract
 # import arrow
-from func.const import *
+# from func.const import *
 
 
 async def middleware(request, call_next, func):

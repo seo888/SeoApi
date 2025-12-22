@@ -1,14 +1,11 @@
 # -*- coding: UTF-8 -*-
 
-from enum import Enum
-import os
 import time
-from fastapi import Response, Request, Form, Body
+from fastapi import Request
 from fastapi import FastAPI
 from function import Func
-from pydantic import BaseModel
 import uvicorn
-from starlette.responses import JSONResponse, RedirectResponse, FileResponse
+from starlette.responses import JSONResponse
 from api import v1_router
 
 
@@ -24,6 +21,10 @@ app = FastAPI(
         {
             "name": "ai",
             "description": "AI接口",
+        },
+        {
+            "name": "tg",
+            "description": "tg接口",
         },
     ],
     docs_url="/",
@@ -66,15 +67,15 @@ async def middleware(request, call_next, func):
 
 
 # @app.get(
-#     "/telegram/send",
-#     tags=["telegram"],
-#     name="【telegram】Send Message",
-#     description="给指定telegram频道或用户发送消息",
+#     "/tg/send",
+#     tags=["tg"],
+#     name="【tg】Send Message",
+#     description="给指定tg频道或用户发送消息",
 # )
-# async def telegram_send(request: Request, text=None, token=None, to_id=None):
-#     """给指定telegram频道或用户发送消息"""
+# async def tg_send(request: Request, text=None, token=None, to_id=None):
+#     """给指定tg频道或用户发送消息"""
 #     if text is None:
-#         return Response(content="【telegram】Send Message API",
+#         return Response(content="【tg】Send Message API",
 #                         media_type="text/html;charset=utf-8")
 #     if text is not None and token is not None and id is not None:
 #         return await router.tg_send(text, token, to_id)

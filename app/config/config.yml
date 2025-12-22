@@ -2,16 +2,20 @@
   程序名称: api1
   绑定域名: yourdomain.com
 
+【代理IP】:
+  china_proxy_url: []
+  foreign_proxy_url: []
+
 【机器人配置】:
-  telegram_token: '6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJYs' # 机器人TOKEN
-  telegram_group_chat_id: '-794028075' # 群组ID
+  tg_token: '6323574779:AAG-bLmHVcfrfIpg5IMaQF0Q2FDFxtClJY' # 机器人TOKEN
+  tg_group_chat_id: '-794028075' # 群组ID
 
 【数据库配置】:
   PostgresDB: "postgresql+psycopg2://adtools:adtools@38.34.175.47:9888/adtools"
 
 【功能开关】:
   开启域名可注册查询: true
-  开启发送至telegram: true
+  开启发送至tg: true
   排名大于限制发送: 10
 
 【访问策略】:
