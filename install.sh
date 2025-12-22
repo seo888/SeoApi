@@ -77,7 +77,7 @@ else
   exit 1
 fi
 
-echo "'镜像精灵 SeoApi $(echo "$RELEASE_JSON" | jq -r .tag_name) 下载成功'"
+echo "'SeoApi $(echo "$RELEASE_JSON" | jq -r .tag_name) 下载成功'"
 
 # 定义输出文件
 IPS_TXT="./SeoApi/app/config/IPS.txt"

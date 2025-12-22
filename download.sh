@@ -6,7 +6,7 @@ git clone --depth 1 'https://user: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@githu
 # rm -rf ./_tmp_clone/Cargo.lock
 # rm -rf ./_tmp_clone/ip.txt
 # rm -rf ./_tmp_clone/打包命令.txt
-# rm -rf ./_tmp_clone/.git
+rm -rf ./_tmp_clone/.git
 rsync -a --delete ./_tmp_clone/ ./app/
 echo "Download completed."
 rm -rf ./_tmp_clone
