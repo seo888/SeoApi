@@ -134,7 +134,7 @@ PROJECT_DIR="/www/SeoApi"
 cd "$PROJECT_DIR" || exit 1
 
 # 检查并创建 postgres_data 目录（如果不存在）
-POSTGRES_DATA_DIR="/www/SeoApi/postgres_data"
+POSTGRES_DATA_DIR="/www/SeoApi/data/postgres_data"
 if [ ! -d "$POSTGRES_DATA_DIR" ]; then
   echo "创建 PostgreSQL 数据目录: $POSTGRES_DATA_DIR"
   mkdir -p "$POSTGRES_DATA_DIR"
