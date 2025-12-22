@@ -11,7 +11,7 @@ services:
 
   postgres:
     image: postgres:16
-    container_name: seo_api_postgres_db
+    container_name: postgres_db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: seo_api
